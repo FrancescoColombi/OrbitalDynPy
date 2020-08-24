@@ -10,5 +10,5 @@ This repo is meant to develope useful python code for Orbital Mechanics and Spac
 <strong>Simone Cravedi</strong>
 <ul>
 <li>MSc Space Engineering - Politecnico di Milano, Italy</li>
-<li>BSc Electronic Engineering - Politecnico di Milano, Italy</li>
+<li>BSc Telecommunications Engineering - Politecnico di Milano, Italy</li>
 </ul>
