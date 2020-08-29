@@ -16,9 +16,9 @@ def R2BP_ode(X, t, mu):
         vx,
         vy,
         vz,
-        -mu / (r ^ 3) * x,
-        -mu / (r ^ 3) * y,
-        -mu / (r ^ 3) * z
+        -mu / (r ** 3) * x,
+        -mu / (r ** 3) * y,
+        -mu / (r ** 3) * z
     ]
     return X_dot
 

@@ -18,13 +18,13 @@ import numpy as np
 #       omega - argument of periapsis [deg]
 #       TA - true anomaly [deg]
 #
-# Author: Francesco COLOMBI, 2016
+# Author: Francesco Colombi, 2016
 '''
 def rv2kp(rr, vv, mu):
-    # Define reference frame versors (column vectors)
-    II = np.array([[1], [0], [0]])
-    JJ = np.array([[0], [1], [0]])
-    KK = np.array([[0], [0], [1]])
+    # Define reference frame versors
+    II = np.array([1, 0, 0])
+    JJ = np.array([0, 1, 0])
+    KK = np.array([0, 0, 1])
 
     # 1) r and v magnitude
     r = np.linalg.norm(rr)
@@ -34,10 +34,10 @@ def rv2kp(rr, vv, mu):
     E = .5 * v**2 - mu/r
     a = -mu/2/E
 
-    hh = np.cross(rr, vv, axis=0, axisb=0)
+    hh = np.cross(rr, vv)
     h = np.linalg.norm(hh)
 
-    ee = 1 / mu * (np.cross(vv, hh, axisa=0, axisb=0) - mu * rr / r)
+    ee = 1 / mu * (np.cross(vv, hh) - mu * rr / r)
     e = np.linalg.norm(ee)
 
     # 3) Inclination [rad]
@@ -96,7 +96,7 @@ Input:
 % rr - position col vector in the geocentric equatorial frame [km]
 % vv - velocity col vector in the geocentric equatorial frame [km/s]
 #
-# Author: Francesco COLOMBI, 2016
+# Author: Francesco Colombi, 2016
 '''
 def kp2rv(kp, mu):
     a = kp[0]
@@ -109,25 +109,25 @@ def kp2rv(kp, mu):
     # 1) orbital parameters expressed in the orbital reference frame
     p = a * (1 - e**2)
 
-    # position
+    # position expressed in perifocal frame
     rr_pf = np.array([
-        [p * np.cos(theta) / (1 + e * np.cos(theta))],
-        [p * np.sin(theta) / (1 + e * np.cos(theta))],
-        [0]
+        p * np.cos(theta) / (1 + e * np.cos(theta)),
+        p * np.sin(theta) / (1 + e * np.cos(theta)),
+        0
     ])
 
     # radial and tangential velocity
     v_r = np.sqrt(mu / p) * e * np.sin(theta)
     v_t = np.sqrt(mu / p) * (e * np.cos(theta) + 1)
 
-    # velocity
+    # velocity expressed in perifocal frame
     vv_pf = np.array([
-        [v_r*np.cos(theta) - v_t*np.sin(theta)],
-        [v_r*np.sin(theta) + v_t*np.cos(theta)],
-        [0]
+        v_r*np.cos(theta) - v_t*np.sin(theta),
+        v_r*np.sin(theta) + v_t*np.cos(theta),
+        0
     ])
 
-    # 2) define the Direction Cosine Matrix from perifocal orbital plane to inertial reference frame
+    # 2) Transformation from perifocal frame to inertial reference frame
     # Frame transformation for a rotation RA around KK
     R_Omega = np.array([
         [np.cos(RA), np.sin(RA), 0],
@@ -147,8 +147,8 @@ def kp2rv(kp, mu):
         [0, 0, 1]
     ])
 
-    # Frame transformation
-    T_I2pf = np.dot(R_omega, np.dot(R_i, R_Omega))
-    rr = np.dot(T_I2pf.T, rr_pf)
-    vv = np.dot(T_I2pf.T, vv_pf)
+    # Direction Cosine Matrix for frame transformation
+    T_pf2I = np.dot(R_omega, np.dot(R_i, R_Omega)).T
+    rr = np.dot(T_pf2I, rr_pf)
+    vv = np.dot(T_pf2I, vv_pf)
     return [rr, vv]
