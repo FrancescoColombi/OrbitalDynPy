@@ -1,3 +1,12 @@
+
+# For testing
+from scipy.integrate import odeint
+import matplotlib as mpl
+from mpl_toolkits.mplot3d import Axes3D
+import matplotlib.pyplot as plt
+
+from Functions.ODE.R2BP import R2BP_dyn
+
 import numpy as np
 
 
@@ -31,8 +40,8 @@ def rv2kp(rr, vv, mu):
     v = np.linalg.norm(vv)
 
     # 2) compute a [km] and e [-]
-    E = .5 * v**2 - mu/r
-    a = -mu/2/E
+    E = 0.5 * v**2 - mu/r
+    a = - mu/2/E
 
     hh = np.cross(rr, vv)
     h = np.linalg.norm(hh)
@@ -41,40 +50,53 @@ def rv2kp(rr, vv, mu):
     e = np.linalg.norm(ee)
 
     # 3) Inclination [rad]
-    incl = np.arccos(np.dot(hh/h, KK) / np.linalg.norm(np.dot(hh/h, KK)))
+    aaa = np.arccos(np.dot(hh/h, KK))
+    incl = np.arccos(np.dot(hh/h, KK))
 
     # 4) Right Ascension (RA)
     # Nodal axis
     nn = np.cross(KK, hh/h)
-    nn = nn / np.linalg.norm(nn)
-    if np.dot(nn, JJ) >= 0:
-        RA = np.arccos(np.dot(nn, JJ))
-    elif np.dot(nn, JJ) < 0:
-        RA = 2*np.pi - np.arccos(np.dot(nn, JJ))
-    else:
+    if np.linalg.norm(nn) == 0:     # hh parallel to KK
         nn = II
         RA = 0
+    else:
+        nn = nn / np.linalg.norm(nn)
+        if np.dot(nn, JJ) >= 0:
+            RA = np.arccos(np.dot(nn, II))
+        elif np.dot(nn, JJ) < 0:
+            RA = 2*np.pi - np.arccos(np.dot(nn, II))
 
     # 5) Argument of Periapsis, omega
-    # if circular orbit --> assume eccentricity vector = nodal axis
-    if np.round(e, 15) == 0:
-        ee = nn
+    circular = False
+    if np.round(e, 10) == 0:    # if circular orbit
+        circular = True
+        ee = nn         # assume eccentricity vector = nodal axis
         omega = 0
     elif incl == 0 and RA == 0:
         if np.dot(ee, JJ) >= 0:
-            omega = np.arccos(ee / e, II)
+            omega = np.arccos(np.dot(ee / e, II))
         else:
-            omega = 2 * np.pi - np.arccos(ee / e, II)
+            omega = 2 * np.pi - np.arccos(np.dot(ee / e, II))
     elif np.dot(ee, KK) >= 0:
         omega = np.arccos(np.dot(nn, ee/e))
     else:
         omega = 2*np.pi - np.arccos(np.dot(nn, ee / e))
 
     # 6) True Anomaly, theta
-    if np.dot(vv, rr) >= 0:
-        theta = np.arccos(np.dot(rr/r, ee/e))
+    if circular:
+        ee_versor = ee
     else:
-        theta = 2*np.pi - np.arccos(np.dot(rr / r, ee / e))
+        ee_versor = ee/e
+
+    if np.dot(vv, rr) > 0:
+        theta = np.arccos(np.dot(rr/r, ee_versor))
+    elif np.dot(vv, rr) < 0:
+        theta = 2*np.pi - np.arccos(np.dot(rr/r, ee_versor))
+    else:
+        if r < a:
+            theta = 0
+        else:
+            theta = np.pi
 
     return [a, e, incl*180/np.pi, RA*180/np.pi, omega*180/np.pi, theta*180/np.pi]
 
@@ -148,7 +170,79 @@ def kp2rv(kp, mu):
     ])
 
     # Direction Cosine Matrix for frame transformation
-    T_pf2I = np.dot(R_omega, np.dot(R_i, R_Omega)).T
-    rr = np.dot(T_pf2I, rr_pf)
-    vv = np.dot(T_pf2I, vv_pf)
-    return [rr, vv]
+    T_i2pf = R_omega @ R_i @ R_Omega
+    rr = np.dot(T_i2pf.T, rr_pf)
+    vv = np.dot(T_i2pf.T, vv_pf)
+    return rr, vv
+
+
+#### TEST ####
+def KepPar_Test():
+    # Constants
+    R_earth = 0.63781600000000E+04                  # [km]
+    mu_earth = 0.59736990612667E+25*6.67259e-20     # [km3/sec2]
+
+    # Orbit parameters
+    altitude = 550.
+    eccentricity = 0.0
+    incl = 20.0
+    Omega = 30.0
+    omega = 15.0
+    theta = 200.0
+    kp0 = [R_earth+altitude, eccentricity, incl, Omega, omega, theta]
+    print('Keplerian parameters: ', kp0)
+    rr0, vv0 = kp2rv(kp0, mu_earth)
+    print('Position [km]:       ', rr0)
+    print('Velocity [km/sec]:   ', vv0)
+    kp0_v2 = rv2kp(rr0, vv0, mu_earth)
+    print('Keplerian parameters regression: ', kp0_v2)
+
+
+def test_GroundTrack():
+    # Constants
+    R_earth = 0.63781600000000E+04
+    mu_earth = 0.59736990612667E+25*6.67259e-20
+
+    # Sidereal time of Earth Rotation
+    ST_earth_rot = (23 + (56 + 4.09/60)/60)/24 * 86400
+    # Earth rotation rate [rad/sec]
+    omega_earth = 2 * np.pi / ST_earth_rot
+
+    # Orbit parameters
+    altitude = 550.
+    eccentricity = 0.3
+    inclination = 0.0
+    kp0 = [R_earth+altitude, eccentricity, inclination, 0.1, 0, 0]
+    rr0, vv0 = kp2rv(kp0, mu_earth)
+
+    # Reference time
+    kernel_dir = 'D:/Francesco/Spice_kernels/'
+    meta_kernel = kernel_dir + 'meta_kernel.tm'
+    spice.furnsh(meta_kernel)
+    date0 = "2020 jan 01 12:00:00"
+    jd0 = spice.utc2et(date0) / 86400
+    spice.kclear()
+
+    # Reference Prime Meridian Sidereal Time
+    GMST_0 = jd2GMST(jd0)
+
+    # Orbit propagation
+    X0 = np.hstack((rr0, vv0))
+    tspan = [0, 2 * 3600]
+    t_out = np.linspace(tspan[0], tspan[1], 1000)
+    y_out = odeint(R2BP_dyn, X0, t_out, args=(mu_earth, ), rtol=1e-10, atol=1e-10)
+
+    rr_orb = y_out[:, 0:3].T
+    vv_orb = y_out[:, 3:6].T
+
+    fig = plt.figure()
+    ax = fig.add_subplot(projection='3d')
+    ax.plot(rr_orb[0, :], rr_orb[1, :], rr_orb[2, :])
+    ax.scatter(0, 0, 0, color='blue')
+    ax.scatter(rr_orb[0, 0], rr_orb[1, 0], rr_orb[2, 0], color='red')
+    ax.set_xlabel('x [km]')
+    ax.set_ylabel('y [km]')
+    ax.set_zlabel('z [km]')
+    plt.show()
+    return
+
