@@ -198,7 +198,7 @@ def KepPar_Test():
     print('Keplerian parameters regression: ', kp0_v2)
 
 
-def test_GroundTrack():
+def test_orbit():
     # Constants
     R_earth = 0.63781600000000E+04
     mu_earth = 0.59736990612667E+25*6.67259e-20
@@ -210,21 +210,18 @@ def test_GroundTrack():
 
     # Orbit parameters
     altitude = 550.
-    eccentricity = 0.3
-    inclination = 0.0
-    kp0 = [R_earth+altitude, eccentricity, inclination, 0.1, 0, 0]
+    eccentricity = 0.0
+    inclination = 90.0
+    Omega = 0.0
+    omega = 0.0
+    theta = 0.0
+    kp0 = [R_earth+altitude, eccentricity, inclination, Omega, omega, theta]
+    print(kp0)
     rr0, vv0 = kp2rv(kp0, mu_earth)
-
-    # Reference time
-    kernel_dir = 'D:/Francesco/Spice_kernels/'
-    meta_kernel = kernel_dir + 'meta_kernel.tm'
-    spice.furnsh(meta_kernel)
-    date0 = "2020 jan 01 12:00:00"
-    jd0 = spice.utc2et(date0) / 86400
-    spice.kclear()
-
-    # Reference Prime Meridian Sidereal Time
-    GMST_0 = jd2GMST(jd0)
+    print(rr0)
+    print(vv0)
+    kp0_v2 = rv2kp(rr0, vv0, mu_earth)
+    print(kp0_v2)
 
     # Orbit propagation
     X0 = np.hstack((rr0, vv0))
@@ -246,3 +243,5 @@ def test_GroundTrack():
     plt.show()
     return
 
+
+# test_orbit()

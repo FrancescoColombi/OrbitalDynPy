@@ -10,7 +10,7 @@ def R2BP_dyn(X, t, mu):
     vy = X[4]
     vz = X[5]
 
-    r = np.linalg.norm(X[0:2])
+    r = np.linalg.norm(X[0:3])
 
     X_dot = [
         vx,
