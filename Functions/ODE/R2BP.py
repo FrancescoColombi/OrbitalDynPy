@@ -2,7 +2,7 @@ import numpy as np
 
 
 # Restricted 2-Body Problem
-def R2BP_ode(X, t, mu):
+def R2BP_dyn(X, t, mu):
     x = X[0]
     y = X[1]
     z = X[2]
@@ -24,7 +24,9 @@ def R2BP_ode(X, t, mu):
 
 # Restricted 2-Body Problem plus perturbations
 
+
 # Rotational Dynamics driven by gravity gradient and considering rigid body
+
 
 # Relative motion
 
