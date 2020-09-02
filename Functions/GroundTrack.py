@@ -12,7 +12,7 @@ import matplotlib.pyplot as plt
 
 from spiceypy import spiceypy as spice
 
-from ODE.R2BP import R2BP_dyn
+from Functions.ODE.R2BP import R2BP_dyn
 from Functions.Utilities.KeplerianParameters import kp2rv
 from Functions.Utilities.TimeConversion import jd2GMST
 
@@ -172,4 +172,4 @@ def test_GroundTrack():
     return
 
 
-test_GroundTrack()
+# test_GroundTrack()
