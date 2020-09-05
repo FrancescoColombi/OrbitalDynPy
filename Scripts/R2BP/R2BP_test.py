@@ -37,11 +37,11 @@ def test_GroundTrack():
     theta = 0.0
     kp0 = [a, eccentricity, incl, Omega, omega, theta]
     rr0, vv0 = kp2rv(kp0, mu_earth)
-    print('Keplerian parameter:         {0}'.format(kp0))
-    print('Initial position [km]:       [{:.3f}, {:.3f}, {:.3f}]'.format(rr0[0], rr0[1], rr0[2]))
-    print('Initial velocity [km/sec]:   [{:.3f}, {:.3f}, {:.3f}]'.format(vv0[0], vv0[1], vv0[2]))
+    print('Keplerian parameter:     {0}'.format(kp0))
+    print('Initial position:        {0} km'.format(rr0))
+    print('Initial velocity:        {0} km/s'.format(vv0))
     T_orb = 2 * np.pi * np.sqrt(a**3 / mu_earth)
-    print(T_orb)
+    print('Orbital period:          {0} h'.format(T_orb/3600))
 
     # Reference time
     kernel_dir = 'D:/Francesco/Spice_kernels/'
@@ -107,6 +107,5 @@ def test_GroundTrack():
 
 
 # test_GroundTrack()
-
 
 test_GroundTrack()
