@@ -2,23 +2,18 @@ import numpy as np
 
 
 # Restricted 2-Body Problem
-def R2BP_dyn(X, t, mu):
-    x = X[0]
-    y = X[1]
-    z = X[2]
-    vx = X[3]
-    vy = X[4]
-    vz = X[5]
+def R2BP_dyn(t, X, mu):
+    x, y, z, vx, vy, vz = X
 
-    r = np.linalg.norm(X[0:3])
+    r3 = np.linalg.norm(X[:3]) ** 3
 
     X_dot = [
         vx,
         vy,
         vz,
-        -mu / (r ** 3) * x,
-        -mu / (r ** 3) * y,
-        -mu / (r ** 3) * z
+        - mu / r3 * x,
+        - mu / r3 * y,
+        - mu / r3 * z
     ]
     return X_dot
 

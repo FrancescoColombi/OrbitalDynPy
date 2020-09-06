@@ -1,8 +1,6 @@
 
 # For testing
 from scipy.integrate import odeint
-import matplotlib as mpl
-from mpl_toolkits.mplot3d import Axes3D
 import matplotlib.pyplot as plt
 
 from Functions.ODE.R2BP import R2BP_dyn
@@ -211,7 +209,7 @@ def test_orbit():
     # Orbit parameters
     altitude = 550.
     eccentricity = 0.0
-    inclination = 90.0
+    inclination = 98.0
     Omega = 0.0
     omega = 0.0
     theta = 0.0
@@ -227,16 +225,20 @@ def test_orbit():
     X0 = np.hstack((rr0, vv0))
     tspan = [0, 2 * 3600]
     t_out = np.linspace(tspan[0], tspan[1], 1000)
-    y_out = odeint(R2BP_dyn, X0, t_out, args=(mu_earth, ), rtol=1e-10, atol=1e-10)
+    y_out = odeint(R2BP_dyn, X0, t_out, args=(mu_earth, ), rtol=1e-10, atol=1e-10, tfirst=True)
 
-    rr_orb = y_out[:, 0:3].T
-    vv_orb = y_out[:, 3:6].T
+    rr_orb = np.transpose(y_out[:, 0:3])
+    vv_orb = np.transpose(y_out[:, 3:6])
 
     fig = plt.figure()
     ax = fig.add_subplot(projection='3d')
     ax.plot(rr_orb[0, :], rr_orb[1, :], rr_orb[2, :])
     ax.scatter(0, 0, 0, color='blue')
     ax.scatter(rr_orb[0, 0], rr_orb[1, 0], rr_orb[2, 0], color='red')
+    maxval = np.abs(rr_orb).max()
+    ax.set_xlim([-maxval, maxval])
+    ax.set_ylim([-maxval, maxval])
+    ax.set_zlim([-maxval, maxval])
     ax.set_xlabel('x [km]')
     ax.set_ylabel('y [km]')
     ax.set_zlabel('z [km]')
@@ -244,4 +246,7 @@ def test_orbit():
     return
 
 
-# test_orbit()
+# test
+if __name__ == '__main__':
+    test_orbit()
+
