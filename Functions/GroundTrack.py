@@ -1,31 +1,26 @@
-"""
-# This function returns the ground track over a planet surface given input time-position coordinates
-#
-# INPUTS            Unit        Description
-# --------------    ---------   ------------------------------------------------------------
-# tt                [sec]       Time past from reference time t_0 for PMST_0 estimation
-#                               Array size = [n]
-# rr                [length]    Position vectors in Equatorial Frame
-#                               Array size = [3, n]
-# t_0               [sec]       Reference time
-# PMST_0            [h]         Prime Meridion Sidereal Time is the time angle of the Prime
-#                               Meridian of the planet wrt the Vernal Equinox at time t_0
-# omega_planet      [rad/sec]   Rotation rate of the planet (sidereal)
-#
-# OUTPUTS           Unit        Description
-# --------------    ---------   ------------------------------------------------------------
-# alpha             [deg]       Right ascension in Equatorial Frame. Array size = [n]
-# delta             [deg]       Declination in Equatorial Frame. Array size = [n]
-# latitude          [deg]       Latitude. Array size = [n]
-# longitude         [deg]       Longitude. Array size = [n]
-# radius            [length]    Radius. Array size = [n]
-"""
-
-
 import numpy as np
 
 
-def GroundTrack(tt, rr, t_0, PMST_0, omega_planet, rr_axis=1):
+def GroundTrack(tt, rr, t_0, PMST_0, omega_planet):
+    """
+    This function returns the ground track over a planet surface given input time-position coordinates
+
+    :param tt:              [sec]       Time past from reference time t_0 for PMST_0 estimation
+                                        Array size = [n]
+    :param rr:              [length]    Position vectors in Equatorial Frame
+                                        Array size = [3, n]
+    :param t_0:             [sec]       Reference time
+    :param PMST_0:          [h]         Prime Meridion Sidereal Time is the time angle of the Prime
+                                        Meridian of the planet wrt the Vernal Equinox at time t_0
+    :param omega_planet:    [rad/sec]   Rotation rate of the planet (sidereal)
+
+    :return alpha:          [deg]       Right ascension in Equatorial Frame. Array size = [n]
+    :return delta:          [deg]       Declination in Equatorial Frame. Array size = [n]
+    :return latitude:       [deg]       Latitude. Array size = [n]
+    :return longitude:      [deg]       Longitude. Array size = [n]
+    :return radius:         [length]    Radius. Array size = [n]
+    """
+
     # this function requires rr to be an array with shape [3, n]
     try:
         if np.shape(rr)[0] != 3 and np.shape(rr)[1] != 3:
