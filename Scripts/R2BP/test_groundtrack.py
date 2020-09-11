@@ -1,7 +1,9 @@
-import numpy as np
-import pandas as pd
-from scipy.integrate import odeint
+import os
+print(os.path.abspath('/Francesco/OrbitalDynPy/Functions/Utilities/coastlines.csv'))
 
+
+import numpy as np
+from scipy.integrate import odeint
 import matplotlib.pyplot as plt
 
 import plotly.graph_objects as go
@@ -9,20 +11,21 @@ import plotly.express as px
 
 from spiceypy import spiceypy as spice
 
-from astropy import constants as const
+"""from astropy import constants as const
 from astropy import units as u
 
 from poliastro.bodies import Earth, Moon, Sun
 from poliastro.twobody import Orbit
+"""
 
-
-from Functions.GroundTrack import GroundTrack
-from Functions.ODE.R2BP import R2BP_dyn
+from Functions.GroundTrack import ground_track, plot_ground_track
+from Functions.OrbitPropagator.R2BP import OrbitPropagatorR2BP as OP
+from Functions.Utilities.SolarSystemBodies import Earth
 from Functions.Utilities.KeplerianParameters import kp2rv
 from Functions.Utilities.TimeConversion import jd2GMST
 
 
-def test_GroundTrack():
+if __name__ == '__main__':
     # Constants
     R_earth = 0.63781600000000E+04
     mu_earth = 0.59736990612667E+25 * 6.67259e-20
@@ -65,13 +68,13 @@ def test_GroundTrack():
     # Orbit propagation
     X0 = np.hstack((rr0, vv0))
     t0 = 0.
-    tf = 2 * T_orb
-    t_out = np.arange(t0, tf, 60)
-    y_out = odeint(R2BP_dyn, X0, t_out, args=(mu_earth,), rtol=1e-12, atol=1e-12, tfirst=True)
-    rr_orb = np.transpose(y_out[:, :3])
-    vv_orb = np.transpose(y_out[:, 3:])
+    tf = 5 * T_orb
+    t_out = np.arange(t0, tf, 30)
+    orbit = OP(X0, t_out, Earth)
+    rr_orb = orbit.rr_out
+    vv_orb = orbit.vv_out
 
-    # plot orbit
+    """# plot orbit
     fig = plt.figure(figsize=[6, 6], tight_layout=True)
     ax = fig.add_subplot(projection='3d')
     ax.plot(rr_orb[0, :], rr_orb[1, :], rr_orb[2, :], lw=1, label='orbit')
@@ -84,10 +87,10 @@ def test_GroundTrack():
     ax.set_ylim([-maxval, maxval])
     ax.set_zlim([-maxval, maxval])
     ax.set_title('Earth Centered - Earth Equatorial Frame')
-    plt.show()
+    plt.show()"""
 
 
-    # test using plotly for nice plots
+    """# test using plotly for nice plots
     data = {'time': t_out,
             'x':    y_out[:, 0],
             'y':    y_out[:, 1],
@@ -103,13 +106,13 @@ def test_GroundTrack():
     yratio = np.abs(rr_orb[1, :]).max() / maxval
     zratio = np.abs(rr_orb[2, :]).max() / maxval
     fig_plotly.update_layout(scene_aspectmode='manual', scene_aspectratio=dict(x=xratio, y=yratio, z=zratio))
-    fig_plotly.show()
+    fig_plotly.show()"""
 
 
     # Ground Track
     t_0 = jd0 * 86400  # [sec]
     tt = t_0 + t_out
-    alpha, delta, lat, long, _ = GroundTrack(tt, rr_orb, t_0, GMST_0, omega_earth)
+    alpha, delta, lat, long, _ = ground_track(tt, rr_orb, t_0, GMST_0, omega_earth)
 
     """
     delta_t = 1 * 3600
@@ -120,6 +123,7 @@ def test_GroundTrack():
     alpha, delta, lat_mark, long_mark, _ = GroundTrack(tt_mark, rr_marker, t_0, GMST_0, omega_earth)
     """
 
+    """
     fig2 = plt.figure(figsize=[10, 6], tight_layout=True)
     ax = fig2.subplots(1, 1)
     ax.scatter(long, lat, c=tt)
@@ -131,9 +135,11 @@ def test_GroundTrack():
     ax.set_xticks(np.arange(-180, 180, 30))
     ax.set_yticks(np.arange(-90, 90, 15))
     plt.grid(ls='--')
+    
 
     plt.show()
-    return
+    """
+    coords = [np.vstack((lat, long))]
+    print(np.shape(coords))
+    plot_ground_track(coords)
 
-
-test_GroundTrack()

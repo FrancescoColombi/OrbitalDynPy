@@ -1,7 +1,7 @@
 import numpy as np
+import matplotlib.pyplot as plt
 
-
-def GroundTrack(tt, rr, t_0, PMST_0, omega_planet):
+def ground_track(tt, rr, t_0, PMST_0, omega_planet, deg=True):
     """
     This function returns the ground track over a planet surface given input time-position coordinates
 
@@ -13,12 +13,13 @@ def GroundTrack(tt, rr, t_0, PMST_0, omega_planet):
     :param PMST_0:          [h]         Prime Meridion Sidereal Time is the time angle of the Prime
                                         Meridian of the planet wrt the Vernal Equinox at time t_0
     :param omega_planet:    [rad/sec]   Rotation rate of the planet (sidereal)
+    :param deg                          Bool. Return angles in degrees
 
     :return alpha:          [deg]       Right ascension in Equatorial Frame. Array size = [n]
     :return delta:          [deg]       Declination in Equatorial Frame. Array size = [n]
     :return latitude:       [deg]       Latitude. Array size = [n]
     :return longitude:      [deg]       Longitude. Array size = [n]
-    :return radius:         [length]    Radius. Array size = [n]
+    :return radius:         [length]    Range distance. Array size = [n]
     """
 
     # this function requires rr to be an array with shape [3, n]
@@ -31,18 +32,18 @@ def GroundTrack(tt, rr, t_0, PMST_0, omega_planet):
         print(err)
 
     # Init output vectors
-    alpha = np.zeros(np.size(tt))
-    delta = np.zeros(np.size(tt))
-    latitude = np.zeros(np.size(tt))
-    longitude = np.zeros(np.size(tt))
-    radius = np.zeros(np.size(tt))
+    alpha = np.zeros(len(tt))
+    delta = np.zeros(len(tt))
+    latitude = np.zeros(len(tt))
+    longitude = np.zeros(len(tt))
+    r_norm = np.zeros(len(tt))
 
     # Initial Prime Meridian angle of the planet [rad]
     theta_0 = PMST_0 * np.pi / 12
 
-    for n in range(np.size(tt)):
+    for n in range(len(tt)):
         r = np.linalg.norm(rr[:, n])
-        radius[n] = r
+        r_norm[n] = r
 
         # Compute declination [rad]
         delta[n] = np.arcsin(rr[2, n] / r)
@@ -72,10 +73,65 @@ def GroundTrack(tt, rr, t_0, PMST_0, omega_planet):
         else:  # West
             longitude[n] = - np.arccos(rr_pcpf[0] / r / np.cos(latitude[n]))
 
-    alpha = alpha * 180 / np.pi
-    delta = delta * 180 / np.pi
-    latitude = latitude * 180 / np.pi
-    longitude = longitude * 180 / np.pi
-    return alpha, delta, latitude, longitude, radius
+    if deg:
+        alpha = alpha * 180 / np.pi
+        delta = delta * 180 / np.pi
+        latitude = latitude * 180 / np.pi
+        longitude = longitude * 180 / np.pi
+
+    return alpha, delta, latitude, longitude, r_norm
 
 
+def plot_ground_track(coords, labels=None, show_plot=True, colors=['b', 'r', 'g', 'y', 'm'],
+                      save_plot=False, filename='groundtrack.png', dpi=300):
+    """
+    This functions plot the ground track of each orbit given as input
+
+    :param coords:
+    :param labels:
+    :param show_plot:
+    :param colors:
+    :param save_plot:
+    :param filename:
+    :param dpi:
+
+    :return:
+    """
+
+    # init figure
+    fig = plt.figure(figsize=(16, 8))
+    ax = fig.add_subplot()
+
+    # load coastline coords [long, lat]
+    coast_coords = np.genfromtxt('/Francesco/OrbitalDynPy/Functions/Utilities/coastlines.csv', delimiter=',')
+    # plot coastline
+    ax.plot(coast_coords[:, 0], coast_coords[:, 1], 'ko', markersize=0.2)
+
+    # plots orbits
+    for n in range(len(coords)):
+        if labels is None:
+            label = str(n)
+        else:
+            label = labels[n]
+
+        # plot starting point and ground track
+        ax.plot(coords[n][1, 0], coords[n][0, 0], colors[n]+'o')
+        ax.plot(coords[n][1, :], coords[n][0, :], colors[n]+'o', markersize=1.5)
+        
+    ax.grid(linestyle='dotted')
+    ax.set_xlim([-180, 180])
+    ax.set_ylim([-90, 90])
+    ax.set_xticks(np.arange(-180, 180, 20))
+    ax.set_yticks(np.arange(-90, 90, 10))
+    ax.set_aspect('equal')
+    ax.set_xlabel('Longitude [degrees]')
+    ax.set_ylabel('Latitude [degrees]')
+    ax.legend()
+
+    if show_plot:
+        plt.show()
+
+    if save_plot:
+        plt.savefig(filename, dpi=dpi)
+
+    return fig, ax
