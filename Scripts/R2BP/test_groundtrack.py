@@ -139,7 +139,7 @@ if __name__ == '__main__':
 
     plt.show()
     """
-    coords = [np.vstack((lat, long))]
-    print(np.shape(coords))
-    plot_ground_track(coords)
+    coords = [np.transpose(np.reshape([lat, long], (2, -1)))]
+    piacenza = [45.042236, 9.679320, 'Piacenza', 'r']
+    plot_ground_track(coords, cities=[piacenza])
 

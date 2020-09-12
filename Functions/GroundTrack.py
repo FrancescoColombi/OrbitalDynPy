@@ -1,6 +1,7 @@
 import numpy as np
 import matplotlib.pyplot as plt
 
+
 def ground_track(tt, rr, t_0, PMST_0, omega_planet, deg=True):
     """
     This function returns the ground track over a planet surface given input time-position coordinates
@@ -83,17 +84,18 @@ def ground_track(tt, rr, t_0, PMST_0, omega_planet, deg=True):
 
 
 def plot_ground_track(coords, labels=None, show_plot=True, colors=['b', 'r', 'g', 'y', 'm'],
-                      save_plot=False, filename='groundtrack.png', dpi=300):
+                      cities=[], save_plot=False, filename='groundtrack.png', dpi=300):
     """
     This functions plot the ground track of each orbit given as input
 
-    :param coords:
-    :param labels:
-    :param show_plot:
-    :param colors:
-    :param save_plot:
-    :param filename:
-    :param dpi:
+    :param coords:      List of 2D arrays with [lat, long] of each orbit
+    :param labels:      List of labels of each orbit
+    :param show_plot:   Bool
+    :param colors:      List of colors of each orbit
+    :param cities:      List of cities with shape [lat, long, city_name, city_color]
+    :param save_plot:   Bool
+    :param filename:    String
+    :param dpi:         Resolution
 
     :return:
     """
@@ -110,14 +112,26 @@ def plot_ground_track(coords, labels=None, show_plot=True, colors=['b', 'r', 'g'
     # plots orbits
     for n in range(len(coords)):
         if labels is None:
-            label = str(n)
+            label = 'orbit #' + str(n)
         else:
             label = labels[n]
 
         # plot starting point and ground track
-        ax.plot(coords[n][1, 0], coords[n][0, 0], colors[n]+'o')
-        ax.plot(coords[n][1, :], coords[n][0, :], colors[n]+'o', markersize=1.5)
-        
+        ax.plot(coords[n][0, 1], coords[n][0, 0], colors[n] + 'o')
+        ax.plot(coords[n][:, 1], coords[n][:, 0], colors[n] + 'o', markersize=1.5, label=label)
+
+    # plot cities
+    for city in cities:
+        city_coords = city[:2]
+        city_name = city[2]
+        city_color = city[3]
+        ax.plot([city_coords[1]], [city_coords[0]], city_color + 'o', markersize=3)
+        ax.annotate(city_name, [city_coords[1], city_coords[0]],
+                    textcoords='offset points', xytext=(0, 2),
+                    ha='center', color=city_color, fontsize='small')
+
+
+    # plot settings
     ax.grid(linestyle='dotted')
     ax.set_xlim([-180, 180])
     ax.set_ylim([-90, 90])
@@ -135,3 +149,26 @@ def plot_ground_track(coords, labels=None, show_plot=True, colors=['b', 'r', 'g'
         plt.savefig(filename, dpi=dpi)
 
     return fig, ax
+
+
+"""
+def city_dict():
+    with open('/Francesco/OrbitalDynPy/Functions/Utilities/world_cities.csv', 'r') as f:
+        lines = f.readlines()
+
+    header = lines[0]
+
+    cities = {}
+
+    for line in lines:
+        line = line.split(',')
+
+        # try create a new dictionary for new city
+        try:
+            # city name and lat/long coords
+            cities[line[1]] = [float(line[2]), float(line[3])]
+        except:
+            pass
+
+    return cities
+"""
