@@ -1,7 +1,6 @@
 import numpy as np
 from matplotlib import pyplot as plt
 
-from Functions.Utilities.KeplerianParameters import rv2kp
 
 def plot_n_orbits(rr_orbits, labels, show_plot=True, save_plot=False, title='Multiple orbits title'):
     """
@@ -45,3 +44,23 @@ def plot_n_orbits(rr_orbits, labels, show_plot=True, save_plot=False, title='Mul
         plt.savefig(title + '.png', dpi=300)
 
     return fig, ax
+
+
+def plot_planet(Rp, position=[0, 0, 0], sphere_resolution=15):
+    # plot central body
+    _u, _v = np.meshgrid(np.linspace(0, 2 * np.pi, sphere_resolution), np.linspace(0, np.pi, sphere_resolution))
+    _x = position[0] + Rp * np.cos(_u) * np.sin(_v)
+    _y = position[1] + Rp * np.sin(_u) * np.sin(_v)
+    _z = position[2] + Rp * np.cos(_v)
+    ax.plot_surface(_x, _y, _z, cmap='Blues')
+
+    # load coastline coords [long, lat]
+    coast_coords = np.genfromtxt('/Francesco/OrbitalDynPy/Functions/Utilities/coastlines.csv', delimiter=',')
+
+
+
+if __name__ == '__main__':
+    fig = plt.figure()
+    ax = fig.add_subplot(projection='3d')
+    plot_planet(10)
+    plt.show()

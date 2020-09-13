@@ -1,7 +1,8 @@
-import matplotlib
 import numpy as np
 from scipy.integrate import odeint
 from matplotlib import pyplot as plt
+from matplotlib import animation
+from celluloid import Camera
 
 
 import poliastro.core.perturbations as pert_fun
@@ -10,10 +11,15 @@ from Functions.Utilities.KeplerianParameters import kp2rv, rv2kp
 from Functions.Dynamics.R2BP import R2BP_dyn
 import Functions.Utilities.SolarSystemBodies as CelBody
 
+
 def null_perturbation():
     return {
         'J2': False,
         'J3': False,
+        'J4': False,
+        'J5': False,
+        'J6': False,
+        'J7': False,
         'aero': False,
         '3rd_body': False,
         '4th_body': False,
@@ -177,8 +183,9 @@ class OrbitPropagatorR2BP:
 
 # TEST
 if __name__ == '__main__':
-    plt.style.use('dark_background')
+    # plt.style.use('dark_background')
     R_earth = CelBody.Earth["Radius"]
+    omega_earth = 2 * np.pi / CelBody.Earth["ST_rotation"]
 
     # Orbit parameters
     altitude = 5500.
@@ -191,7 +198,97 @@ if __name__ == '__main__':
     theta = 0.0
     kp0 = [a, eccentricity, incl, Omega, omega, theta]
 
-    t_span = np.linspace(0, 20*86400, 5000)
+    t_span = np.linspace(0, 1*86400, 1000)
 
     op = OrbitPropagatorR2BP(kp0, t_span, coes=True, deg=True)
     op.plot_3D(show_plot=True)
+
+    # try animation
+    rr = op.rr_out
+
+
+    # init figure
+    fig = plt.figure()
+    ax = fig.add_subplot(projection='3d')
+    # ax = p3.Axes3D(fig)
+    max_r = np.max(abs(rr))
+    ax.set_xlim(- max_r, max_r)
+    ax.set_ylim(- max_r, max_r)
+    ax.set_zlim(- max_r, max_r)
+
+    """
+    ## Using FunAnimate
+    dot, = ax.plot([], [], [], 'ko', lw=2)
+    line, = ax.plot([], [], [], lw=1)
+    _u, _v = np.meshgrid(np.linspace(0, 2 * np.pi, 15), np.linspace(0, np.pi, 15))
+    _x = R_earth * np.cos(_u) * np.sin(_v)
+    _y = R_earth * np.sin(_u) * np.sin(_v)
+    _z = R_earth * np.cos(_v)
+    planet, = ax.plot_surface(_x, _y, _z, cmap='Blues')
+    # fig_title = fig.suptitle('')
+
+    def fig_animation(i, vect, tt, Rp, omega_p, n_tail=100):
+        # fig_title.set_text('Time = {:.3f} h'.format(tt[i]/3600))  # for debug purposes
+
+        # dot.set_data([vect[i, 0]], [vect[i, 1]])
+        # dot.set_3d_properties([vect[i, 2]])
+        iplus = i + 1
+        if i < n_tail:
+            line.set_data(vect[:iplus, 0], vect[:iplus, 1])
+            line.set_3d_properties(vect[:iplus, 2], 'z')
+        else:
+            i_low = i - n_tail
+            line.set_data(vect[i_low:iplus, 0], vect[i_low:iplus, 1])
+            line.set_3d_properties(vect[i_low:iplus, 2], 'z')
+
+        # plot central body
+        _u, _v = np.meshgrid(np.linspace(0, 2 * np.pi, 15), np.linspace(0, np.pi, 15))
+        _u = _u + (omega_p * tt[i])
+        _x = Rp * np.cos(_u) * np.sin(_v)
+        _y = Rp * np.sin(_u) * np.sin(_v)
+        _z = Rp * np.cos(_v)
+        planet.set_data(_x, _y)
+        planet.set_3d_properties(_z, 'z')
+
+        return dot, line, planet
+
+    # choose the interval based on dt and the time to animate one step
+    from time import time
+    t0 = time()
+    fig_animation(0, rr, t_span, R_earth, omega_earth)
+    t1 = time()
+    dt = 1. / 60  # 60 fps
+    interval = 1000 * dt - (t1 - t0)
+
+    anim = animation.FuncAnimation(fig, fig_animation, fargs=(rr, t_span, R_earth, omega_earth),
+                                   frames=len(t_span), interval=interval, blit=True)
+    plt.show()
+    """
+
+    # Using Celluloid Module
+    camera = Camera(fig)
+    n_tail = 50
+    for i in range(len(t_span)):
+        # Build each frame
+
+        # plot central body
+        _u, _v = np.meshgrid(np.linspace(0, 2 * np.pi, 15), np.linspace(0, np.pi, 15))
+        _u = _u + (omega_earth * t_span[i])
+        _x = R_earth * np.cos(_u) * np.sin(_v)
+        _y = R_earth * np.sin(_u) * np.sin(_v)
+        _z = R_earth * np.cos(_v)
+        ax.plot_surface(_x, _y, _z, cmap='Blues')
+
+        # plot orbit position and tail
+        if i < n_tail:
+            ax.plot(rr[:i+1, 0], rr[:i+1, 1], rr[:i+1, 2], 'b')
+        else:
+            i_low = i - n_tail
+            ax.plot(rr[i_low:i+1, 0], rr[i_low:i+1, 1], rr[i_low:i+1, 2], 'b')
+        ax.plot(rr[i, 0], rr[i, 1], rr[i, 2], 'ko', lw=2)
+
+        camera.snap()
+
+    animation = camera.animate(interval=100, blit=True)
+    plt.show()
+
