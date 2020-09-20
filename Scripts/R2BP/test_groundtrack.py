@@ -1,10 +1,4 @@
-import os
-print(os.path.abspath('/Francesco/OrbitalDynPy/Functions/Utilities/coastlines.csv'))
-
-
 import numpy as np
-from scipy.integrate import odeint
-import matplotlib.pyplot as plt
 
 import plotly.graph_objects as go
 import plotly.express as px

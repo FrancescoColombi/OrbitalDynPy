@@ -7,20 +7,18 @@ def rv2kp(rr, vv, mu, deg=True):
     """
     From state vector (position and velocity) to Keplerian Parameters
 
-    Input:
-    rr  - position vector in the geocentric equatorial frame [km]
-    vv  - velocity vector in the geocentric equatorial frame [km]
-    mu  - standard gravitational parameter [km^3/s^2]
-    deg - bool variable. Return angles in degrees if true, in radians if false
+    :param rr:  Position vector in the geocentric equatorial frame [km];
+    :param vv:  Velocity vector in the geocentric equatorial frame [km/s]
+    :param mu:  Standard gravitational parameter [km^3/s^2]
+    :param deg: Bool variable. Output angles are in degrees if true, in radians if false
 
-    Output:
-    kp  - Keplerian parameters [a, e, incl, RA, omega, theta]
-        a - semi-major axis [km]
-        e - eccentricity [-]
-        incl - inclination of the orbit [deg]
-        RA - right ascension of the ascending node [deg]
-        omega - argument of periapsis [deg]
-        TA - true anomaly [deg]
+    :returns:   kp - Keplerian parameters [a, e, incl, RA, omega, theta].
+                a: semi-major axis [km],
+                e: eccentricity [-],
+                incl: inclination of the orbit,
+                RA: right ascension of the ascending node,
+                omega: argument of periapsis,
+                theta: true anomaly
 
     Francesco Colombi, 2016
     """
@@ -44,7 +42,6 @@ def rv2kp(rr, vv, mu, deg=True):
     e = np.linalg.norm(ee)
 
     # 3) Inclination [rad]
-    aaa = acos(np.dot(hh/h, KK))
     incl = acos(np.dot(hh/h, KK))
 
     # 4) Right Ascension (RA)
@@ -104,20 +101,18 @@ def kp2rv(kp, mu, deg=True):
     """
     From Keplerian Parameters to state vector (position and velocity)
 
-    Input:
-    kp  - Keplerian parameters [a, e, incl, RA, omega, TA]
-          a - semi-major axis [km]
-          e - eccentricity [-]
-          incl - inclination of the orbit [deg]
-          RA - right ascension of the ascending node [deg]
-          omega - argument of periapsis [deg]
-          theta - true anomaly [deg]
-    mu  - standard gravitational parameter [km^3/s^2]
-    deg - bool variable. Input angles in degrees if true, in radians if false
+    :param kp:  Keplerian parameters [a, e, incl, RA, omega, theta].
+                a: semi-major axis [km],
+                e: eccentricity [-],
+                incl: inclination of the orbit,
+                RA: right ascension of the ascending node,
+                omega: argument of periapsis,
+                theta: true anomaly
+    :param mu:  standard gravitational parameter [km^3/s^2]
+    :param deg: bool variable. Input angles are in degrees if true, in radians if false
 
-    Output:
-    rr - position col vector in the geocentric equatorial frame [km]
-    vv - velocity col vector in the geocentric equatorial frame [km/s]
+    :returns:   rr - position vector in the geocentric equatorial frame [km];
+                vv - velocity vector in the geocentric equatorial frame [km/s]
 
     Author: Francesco Colombi, 2016
     """

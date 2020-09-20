@@ -1,7 +1,7 @@
 import numpy as np
 from scipy.integrate import odeint
 from matplotlib import pyplot as plt
-from matplotlib import animation
+# from matplotlib import animation
 from celluloid import Camera
 
 
@@ -10,6 +10,7 @@ import poliastro.core.perturbations as pert_fun
 from Functions.Utilities.KeplerianParameters import kp2rv, rv2kp
 from Functions.Dynamics.R2BP import R2BP_dyn
 import Functions.Utilities.SolarSystemBodies as CelBody
+from Functions.Utilities import PlotOrbit
 
 
 def null_perturbation():
@@ -268,23 +269,27 @@ if __name__ == '__main__':
     # Using Celluloid Module
     camera = Camera(fig)
     n_tail = 50
+    texture_path = '/Francesco/OrbitalDynPy/Functions/Utilities/texture/Earth.jpg'
     for i in range(len(t_span)):
         # Build each frame
 
         # plot central body
-        _u, _v = np.meshgrid(np.linspace(0, 2 * np.pi, 15), np.linspace(0, np.pi, 15))
+        """_u, _v = np.meshgrid(np.linspace(0, 2 * np.pi, 15), np.linspace(0, np.pi, 15))
         _u = _u + (omega_earth * t_span[i])
         _x = R_earth * np.cos(_u) * np.sin(_v)
         _y = R_earth * np.sin(_u) * np.sin(_v)
         _z = R_earth * np.cos(_v)
-        ax.plot_surface(_x, _y, _z, cmap='Blues')
+        ax.plot_surface(_x, _y, _z, cmap='Blues')"""
+        theta = omega_earth * t_span[i]
+        # PlotOrbit.plot_sphere(R_earth, theta=theta)
+        PlotOrbit.plot_plantet(R_earth, texture_path, theta=theta)
 
         # plot orbit position and tail
         if i < n_tail:
-            ax.plot(rr[:i+1, 0], rr[:i+1, 1], rr[:i+1, 2], 'b')
+            ax.plot(rr[:i+1, 0], rr[:i+1, 1], rr[:i+1, 2], 'b--')
         else:
             i_low = i - n_tail
-            ax.plot(rr[i_low:i+1, 0], rr[i_low:i+1, 1], rr[i_low:i+1, 2], 'b')
+            ax.plot(rr[i_low:i+1, 0], rr[i_low:i+1, 1], rr[i_low:i+1, 2], 'b--')
         ax.plot(rr[i, 0], rr[i, 1], rr[i, 2], 'ko', lw=2)
 
         camera.snap()
