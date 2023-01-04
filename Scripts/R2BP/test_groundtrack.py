@@ -14,9 +14,11 @@ from poliastro.twobody import Orbit
 
 from Functions.GroundTrack import ground_track, plot_ground_track
 from Functions.OrbitPropagator.R2BP import OrbitPropagatorR2BP as OP
+from Functions.OrbitPropagator.R2BP import null_perturbation
 from Functions.Utilities.SolarSystemBodies import Earth
 from Functions.Utilities.KeplerianParameters import kp2rv
 from Functions.Utilities.TimeConversion import jd2GMST
+from Functions.SunSynch import inclination_sunsynch
 
 
 if __name__ == '__main__':
@@ -36,7 +38,7 @@ if __name__ == '__main__':
     a = R_earth + altitude
     # a = 26600
     eccentricity = 0.
-    incl = 98.0
+    incl = inclination_sunsynch(a, eccentricity)
     Omega = 0.0
     omega = 0.0
     theta = 0.0
@@ -64,7 +66,9 @@ if __name__ == '__main__':
     t0 = 0.
     tf = 5 * T_orb
     t_out = np.arange(t0, tf, 30)
-    orbit = OP(X0, t_out, Earth)
+    perturbations = null_perturbation()
+    perturbations["J2"] = True
+    orbit = OP(X0, t_out, Earth, perts=perturbations)
     rr_orb = orbit.rr_out
     vv_orb = orbit.vv_out
 

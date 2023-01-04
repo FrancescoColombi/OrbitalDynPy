@@ -123,6 +123,18 @@ def jd2GMST(JD):
     return GMST
 
 
+def LocalTime(UTC, longitude):
+    """
+    Compute Local Time (LT) given the corresponding UTC and the longitude of the local position.
+
+    :param UTC:         Coordinated Universal Time
+    :param longitude:   Longitude of the local position
+    :return:            LT
+    """
+    LT = (UTC + longitude / 15) % 24
+    return LT
+
+
 def fracday2hms(fracDay):
     m, h = math.modf(fracDay * 24)
     s, m = math.modf(m * 60)

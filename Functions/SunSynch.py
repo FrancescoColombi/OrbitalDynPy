@@ -8,11 +8,22 @@ from Functions.Utilities.SolarSystemBodies import Earth
 n_earth = 2 * np.pi / (Earth["sidereal_year"] * 86400)
 
 def inclination_sunsynch(a, e=0., mu=Earth["mu"], Rp=Earth["Radius"], J2=Earth["J2"], Omega_dot=n_earth, deg=True):
+    """
+
+    :param a: Semi-major axis
+    :param e: Eccentricity
+    :param mu: Gravitational parameter
+    :param Rp: Radius of the primary
+    :param J2: J2 geopotential term of the primary
+    :param Omega_dot: Desired precession rate of the Right-Ascension of the Ascending Node
+    :param deg: Bool
+    :return: incl - Orbit inclination
+    """
     # semi-latus rectum of the orbit
     p = a * (1 - e ** 2)
 
     # mean motion of the orbit
-    #n = (mu / a ** 3) ** 0.5
+    # n = (mu / a ** 3) ** 0.5
 
     # inclincation
     incl = acos(- 2 / 3 * Omega_dot / J2 * ((a ** 3 / mu) ** 0.5) * ((p / Rp) ** 2))
