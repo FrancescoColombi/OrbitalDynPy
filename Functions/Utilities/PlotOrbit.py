@@ -60,14 +60,14 @@ def plot_sphere(Rp, position=[0, 0, 0], theta=0, sphere_resolution=15, ax=None):
     return ax.plot_surface(_x, _y, _z, cmap='Blues')
 
 
-def plot_plantet(Rp, texture_path, position=[0, 0, 0], theta=0., ax=None):
+def plot_plantet(Rp, texture_path, resolution=7, position=[0, 0, 0], theta=0., ax=None):
     if not bool(ax):
         ax = plt.gca()
 
     # load texture with PIL
     bm = PIL.Image.open(texture_path)
     # it's big, so I'll rescale it, convert to array, and divide by 256 to get RGB values that matplotlib accept
-    bm = np.array(bm.resize([int(d/20) for d in bm.size], resample=PIL.Image.BILINEAR)) / 256.
+    bm = np.array(bm.resize([int(d/resolution) for d in bm.size], resample=PIL.Image.BICUBIC)) / 256.
 
     # coordinates of the image - don't know if this is entirely accurate, but probably close
     lons = theta + np.linspace(-180, 180, bm.shape[1]) * np.pi / 180
@@ -79,8 +79,12 @@ def plot_plantet(Rp, texture_path, position=[0, 0, 0], theta=0., ax=None):
 
 
 if __name__ == '__main__':
+    # Constants
+    R_earth = 0.63781600000000E+04
+    mu_earth = 0.59736990612667E+25 * 6.67259e-20
+
     fig = plt.figure()
     ax = fig.add_subplot(projection='3d')
-    texture_path = '/Francesco/OrbitalDynPy/Functions/Utilities/texture/Earth.jpg'
-    plot_plantet(100, texture_path)
+    texture_path = './texture/Earth.jpg'
+    plot_plantet(R_earth, texture_path, resolution=2)
     plt.show()

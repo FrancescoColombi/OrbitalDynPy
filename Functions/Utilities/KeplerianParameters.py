@@ -79,7 +79,12 @@ def rv2kp(rr, vv, mu, deg=True):
     else:
         ee_versor = ee/e
 
-    if np.dot(vv, rr) > 0:
+    if circular:
+        if rr[2] >= 0:
+            theta = acos(np.dot(rr / r, ee_versor))
+        elif rr[2] < 0:
+            theta = 2 * np.pi - acos(np.dot(rr / r, ee_versor))
+    elif np.dot(vv, rr) > 0:
         theta = acos(np.dot(rr/r, ee_versor))
     elif np.dot(vv, rr) < 0:
         theta = 2*np.pi - acos(np.dot(rr/r, ee_versor))
@@ -185,11 +190,11 @@ if __name__ == '__main__':
 
     # Orbit parameters
     altitude = 550.
-    eccentricity = 0.0
+    eccentricity = .01
     incl = 20.0
     Omega = 30.0
-    omega = 15.0
-    theta = 200.0
+    omega = 75.0
+    theta = 150.0
     kp0 = [R_earth+altitude, eccentricity, incl, Omega, omega, theta]
     print('Keplerian parameters: ', kp0)
     rr0, vv0 = kp2rv(kp0, mu_earth)

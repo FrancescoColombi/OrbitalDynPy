@@ -105,7 +105,7 @@ def plot_ground_track(coords, labels=None, show_plot=True, colors=['b', 'r', 'g'
     ax = fig.add_subplot()
 
     # load coastline coords [long, lat]
-    coast_coords = np.genfromtxt('/Francesco/OrbitalDynPy/Functions/Utilities/coastlines.csv', delimiter=',')
+    coast_coords = np.genfromtxt('D:/Documents/Francesco/Space_Engineering/OrbitalDynPy/Functions/Utilities/coastlines.csv', delimiter=',')
     # plot coastline
     ax.plot(coast_coords[:, 0], coast_coords[:, 1], 'ko', markersize=0.2)
 

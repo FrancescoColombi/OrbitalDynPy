@@ -1,7 +1,7 @@
 import numpy as np
 
-import plotly.graph_objects as go
-import plotly.express as px
+# import plotly.graph_objects as go
+# import plotly.express as px
 
 from spiceypy import spiceypy as spice
 
@@ -48,10 +48,10 @@ if __name__ == '__main__':
     print('Initial position:        {0} km'.format(rr0))
     print('Initial velocity:        {0} km/s'.format(vv0))
     T_orb = 2 * np.pi * np.sqrt(a**3 / mu_earth)
-    print('Orbital period:          {0} h'.format(T_orb/3600))
+    print('Orbital period:          {0} min'.format(T_orb/60))
 
     # Reference time
-    kernel_dir = 'D:/Francesco/Spice_kernels/'
+    kernel_dir = "D:/Documents/Francesco/Space_Engineering/spice_kernels/"
     meta_kernel = kernel_dir + 'meta_kernel.tm'
     spice.furnsh(meta_kernel)
     date0 = "2020 jan 01 12:00:00"
@@ -139,5 +139,5 @@ if __name__ == '__main__':
     """
     coords = [np.transpose(np.reshape([lat, long], (2, -1)))]
     piacenza = [45.042236, 9.679320, 'Piacenza', 'r']
-    plot_ground_track(coords, cities=[piacenza])
-
+    plot_ground_track(coords)
+    #plot_ground_track(coords, cities=[piacenza])
