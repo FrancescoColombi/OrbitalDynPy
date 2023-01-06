@@ -12,7 +12,6 @@ from Functions.Dynamics.R2BP import R2BP_dyn
 import Functions.Utilities.SolarSystemBodies as CelBody
 from Functions.Utilities import PlotOrbit
 
-
 def null_perturbation():
     return {
         'J2': False,

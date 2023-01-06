@@ -67,7 +67,7 @@ def plot_plantet(Rp, texture_path, resolution=7, position=[0, 0, 0], theta=0., a
     # load texture with PIL
     bm = PIL.Image.open(texture_path)
     # it's big, so I'll rescale it, convert to array, and divide by 256 to get RGB values that matplotlib accept
-    bm = np.array(bm.resize([int(d/resolution) for d in bm.size], resample=PIL.Image.BICUBIC)) / 256.
+    bm = np.array(bm.resize([int(d / resolution) for d in bm.size], resample=PIL.Image.BICUBIC)) / 256.
 
     # coordinates of the image - don't know if this is entirely accurate, but probably close
     lons = theta + np.linspace(-180, 180, bm.shape[1]) * np.pi / 180

@@ -1,6 +1,14 @@
 import numpy as np
 import matplotlib.pyplot as plt
 from Functions.Utilities.FrameTransformation import *
+import os
+
+COASTLINES_COORDINATES_FILE = os.path.join(os.path.dirname(os.path.realpath(__file__)),
+                                           os.path.join('Utilities', 'texture', 'coastlines.csv'))
+
+EARTH_SURFACE_IMAGE = os.path.join(os.path.dirname(os.path.realpath(__file__)),
+                                   os.path.join('Utilities', 'texture', 'Earth.jpg'))
+
 
 def ground_track(tt, rr, t_0, PMST_0, omega_planet, deg=True):
     """
@@ -84,7 +92,7 @@ def ground_track(tt, rr, t_0, PMST_0, omega_planet, deg=True):
 
 
 def plot_ground_track(coords, labels=None, show_plot=True, colors=['b', 'r', 'g', 'y', 'm'],
-                      ground_stations=[], save_plot=False, filename='groundtrack.png', dpi=300):
+                      ground_stations=None, save_plot=False, filename='groundtrack.png', dpi=300):
     """
     This functions plot the ground track of each orbit given as input
 
@@ -102,13 +110,18 @@ def plot_ground_track(coords, labels=None, show_plot=True, colors=['b', 'r', 'g'
     """
 
     # init figure
+    if ground_stations is None:
+        ground_stations = []
     fig = plt.figure(figsize=(16, 8))
     ax = fig.add_subplot()
 
     # load coastline coords [long, lat]
-    coast_coords = np.genfromtxt('D:/Documents/Francesco/Space_Engineering/OrbitalDynPy/Functions/Utilities/coastlines.csv', delimiter=',')
+    coast_coords = np.genfromtxt(COASTLINES_COORDINATES_FILE, delimiter=',')
     # plot coastline
     ax.plot(coast_coords[:, 0], coast_coords[:, 1], 'ko', markersize=0.2)
+
+    ax.imshow(plt.imread(EARTH_SURFACE_IMAGE), extent=[-180, 180, -90, 90])
+
 
     # plots orbits
     for n in range(len(coords)):
@@ -227,7 +240,6 @@ def ground_station_visibility(tt, rr, gs_coord, R_gs, t_0, PMST_0, omega_planet,
                 vis_window.append([t_vis_start, t_vis_end])
 
     return visibility, rr_lh, vis_window
-
 
 
 """

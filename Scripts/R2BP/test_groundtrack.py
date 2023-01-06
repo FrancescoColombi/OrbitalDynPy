@@ -1,25 +1,25 @@
 import numpy as np
 
 import matplotlib.pyplot as plt
-# import plotly.graph_objects as go
-# import plotly.express as px
+import plotly.graph_objects as go
+import plotly.express as px
 
 from spiceypy import spiceypy as spice
 
-"""from astropy import constants as const
-from astropy import units as u
+# from astropy import constants as const
+# from astropy import units as u
 
-from poliastro.bodies import Earth, Moon, Sun
-from poliastro.twobody import Orbit
-"""
+# from poliastro.bodies import Earth, Moon, Sun
+# from poliastro.twobody import Orbit
+
 
 from Functions.GroundTrack import *
 from Functions.OrbitPropagator.R2BP import OrbitPropagatorR2BP as op
-from Functions.OrbitPropagator.R2BP import null_perturbation
-from Functions.Utilities.SolarSystemBodies import Earth
-from Functions.Utilities.KeplerianParameters import kp2rv
-from Functions.Utilities.TimeConversion import jd2GMST
-from Functions.SunSynch import inclination_sunsynch
+from Functions.OrbitPropagator.R2BP import *
+from Functions.Utilities.SolarSystemBodies import *
+from Functions.Utilities.KeplerianParameters import *
+from Functions.Utilities.TimeConversion import *
+from Functions.SunSynch import *
 
 if __name__ == '__main__':
     # Constants
@@ -127,12 +127,12 @@ if __name__ == '__main__':
         print("Visibility Contact # {0}".format(i_n))
         print("Contact Visibility Period = {0} min".format(contact_period/60))
 
-    fig_plot0 = plt.figure()
-    axs_plot0 = fig_plot0.add_subplot()
-    axs_plot0.plot(tt, visibility, markersize=1.5)
-    axs_plot0.set_title('Visibility from Ground Station vs. Time')
-    axs_plot0.set_ylim(0, 1)
-    axs_plot0.grid(True)
+    fig0 = plt.figure()
+    ax0 = fig0.add_subplot()
+    ax0.plot(tt, visibility, markersize=1.5)
+    ax0.set_title('Visibility from Ground Station vs. Time')
+    ax0.set_ylim(0, 1)
+    ax0.grid(True)
 
     visibility_num = sum(visibility)
     visibility_pos = np.zeros([2, visibility_num])
@@ -146,10 +146,10 @@ if __name__ == '__main__':
             visibility_rr_lh[:, id_counter] = rr_lh[:, i_n]
             id_counter = id_counter + 1
 
-    fig_plot1 = plt.figure()
-    axs_plot1 = fig_plot1.add_subplot(projection='3d')
-    axs_plot1.plot(rr_lh[0, :], rr_lh[1, :], rr_lh[2, :], lw=1, label='Trajectory in Local Horizon')
-    axs_plot1.plot(visibility_rr_lh[0, :], visibility_rr_lh[1, :], visibility_rr_lh[2, :], 'ro', markersize=1)
+    fig1 = plt.figure()
+    ax1 = fig1.add_subplot(projection='3d')
+    ax1.plot(rr_lh[0, :], rr_lh[1, :], rr_lh[2, :], lw=1, label='Trajectory in Local Horizon')
+    ax1.plot(visibility_rr_lh[0, :], visibility_rr_lh[1, :], visibility_rr_lh[2, :], 'ro', markersize=1)
     max_val = np.max(np.abs(rr_lh))
     # visibility cone
     theta_circle = np.linspace(-180, 180) * np.pi / 180
@@ -157,29 +157,29 @@ if __name__ == '__main__':
     x = np.cos(visibility_aperture * np.pi / 180) * np.outer(np.ones(np.size(theta_circle)), R_a).T
     y = np.sin(visibility_aperture * np.pi / 180) * np.outer(np.cos(theta_circle), R_a).T
     z = np.sin(visibility_aperture * np.pi / 180) * np.outer(np.sin(theta_circle), R_a).T
-    axs_plot1.plot_surface(x, y, z, rstride=4, cstride=4)
-    axs_plot1.set_aspect('equal')
-    axs_plot1.set_xlabel('Zenith [km]')
-    axs_plot1.set_ylabel('East [km]')
-    axs_plot1.set_zlabel('North [km]')
-    axs_plot1.set_title('Local Horizon view from Ground Station')
+    ax1.plot_surface(x, y, z, rstride=4, cstride=4)
+    ax1.set_aspect('equal')
+    ax1.set_xlabel('Zenith [km]')
+    ax1.set_ylabel('East [km]')
+    ax1.set_zlabel('North [km]')
+    ax1.set_title('Local Horizon view from Ground Station')
 
-    fig_plot2 = plt.figure(figsize=(8, 6))
-    ax_plot2 = fig_plot2.add_subplot()
-    ax_plot2.plot(long, lat, 'bo', markersize=1.5)
-    ax_plot2.plot(visibility_pos[1, :], visibility_pos[0, :], 'ro', markersize=1.5)
-    ax_plot2.plot(ground_station_coord[1], ground_station_coord[0], 'mo', markersize=3, label='Ground Station')
-    ax_plot2.annotate('ground station', [ground_station_coord[1], ground_station_coord[0]], textcoords='offset points',
-                      xytext=(0, 2), ha='center', color='m', fontsize='small')
-    ax_plot2.set_xlim([-180, 180])
-    ax_plot2.set_ylim([-90, 90])
-    ax_plot2.set_xticks(np.arange(-180, 180, 20))
-    ax_plot2.set_yticks(np.arange(-90, 90, 10))
-    ax_plot2.set_aspect('equal')
-    ax_plot2.set_aspect('equal')
-    ax_plot2.set_xlabel('Longitude [degrees]')
-    ax_plot2.set_ylabel('Latitude [degrees]')
-    ax_plot2.set_title('Ground Track and Visibility Area')
+    fig2 = plt.figure(figsize=(8, 6))
+    ax2 = fig2.add_subplot()
+    ax2.plot(long, lat, 'bo', markersize=1.5)
+    ax2.plot(visibility_pos[1, :], visibility_pos[0, :], 'ro', markersize=1.5)
+    ax2.plot(ground_station_coord[1], ground_station_coord[0], 'mo', markersize=3, label='Ground Station')
+    ax2.annotate('ground station', [ground_station_coord[1], ground_station_coord[0]], textcoords='offset points',
+                 xytext=(0, 2), ha='center', color='m', fontsize='small')
+    ax2.set_xlim([-180, 180])
+    ax2.set_ylim([-90, 90])
+    ax2.set_xticks(np.arange(-180, 180, 20))
+    ax2.set_yticks(np.arange(-90, 90, 10))
+    ax2.set_aspect('equal')
+    ax2.set_aspect('equal')
+    ax2.set_xlabel('Longitude [degrees]')
+    ax2.set_ylabel('Latitude [degrees]')
+    ax2.set_title('Ground Track and Visibility Area')
 
     """
     delta_t = 1 * 3600
