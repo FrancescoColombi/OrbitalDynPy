@@ -53,6 +53,51 @@ def cartesian2spherical(xyz):
         return alpha, delta, r_norm
 
 
+def T_Rz(theta):
+    """
+    Frame transformation matrix for a rotation around the z-axis
+
+    :param theta: scalar, rotation angle [0, 2*pi]
+    :return: TRz, frame transformation matrix
+    """
+    TRz = np.array([
+        [np.cos(theta), np.sin(theta), 0],
+        [-np.sin(theta), np.cos(theta), 0],
+        [0, 0, 1]
+    ], dtype=np.float64)
+    return TRz
+
+
+def T_Rx(theta):
+    """
+    Frame transformation matrix for a rotation around the x-axis
+
+    :param theta: scalar, rotation angle [0, 2*pi]
+    :return: TRx, frame transformation matrix
+    """
+    TRx = np.array([
+        [1, 0, 0],
+        [0, np.cos(theta), np.sin(theta)],
+        [0, -np.sin(theta), np.cos(theta)]
+    ], dtype=np.float64)
+    return TRx
+
+
+def T_Ry(theta):
+    """
+    Frame transformation matrix for a rotation around the y-axis
+
+    :param theta: scalar, rotation angle [0, 2*pi]
+    :return: TRx, frame transformation matrix
+    """
+    TRy = np.array([
+        [np.cos(theta), 0, -np.sin(theta)],
+        [0, 1, 0],
+        [np.sin(theta), 0, np.cos(theta)]
+    ], dtype=np.float64)
+    return TRy
+
+
 def eq2ecef(rr, tspan, t_0, PMST_0, omega_planet):
     """
     Transformation from Equatorial Inertial reference frame (eq) to Planet-Centered Planet-Fixed frame (ecef)

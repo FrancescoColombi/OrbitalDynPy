@@ -129,7 +129,7 @@ def LocalTime(UTC, longitude):
 
     :param UTC:         Coordinated Universal Time
     :param longitude:   Longitude of the local position
-    :return:            LT
+    :return LT:         Local Time LT
     """
     LT = (UTC + longitude / 15) % 24
     return LT
