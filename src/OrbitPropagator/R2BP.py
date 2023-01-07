@@ -1,16 +1,16 @@
-import numpy as np
+# import numpy as np
 from scipy.integrate import odeint
-from matplotlib import pyplot as plt
+# from matplotlib import pyplot as plt
 # from matplotlib import animation
 from celluloid import Camera
 
-
 import poliastro.core.perturbations as pert_fun
 
-from Functions.Utilities.KeplerianParameters import kp2rv, rv2kp
-from Functions.Dynamics.R2BP import R2BP_dyn
-import Functions.Utilities.SolarSystemBodies as CelBody
-from Functions.Utilities import PlotOrbit
+from src.Utilities.KeplerianParameters import kp2rv, rv2kp
+from src.Dynamics.R2BP import R2BP_dyn
+import src.Utilities.SolarSystemBodies as CelBody
+from src.Utilities.plotting_tools import *
+
 
 def null_perturbation():
     return {
@@ -20,15 +20,15 @@ def null_perturbation():
         'J5': False,
         'J6': False,
         'J7': False,
-        'aero': False,
+        'aero_drag': False,
         '3rd_body': False,
         '4th_body': False,
-        'SRP': False
+        'srp': False
     }
 
 
 class OrbitPropagatorR2BP:
-    def __init__(self, state0, tspan, primary=CelBody.Earth, coes=False, deg=True, perts=null_perturbation()):
+    def __init__(self, state0, tspan, primary=CelBody.earth, coes=False, deg=True, perts=null_perturbation()):
 
         self.primary = primary
         self.mu = self.primary["mu"]
@@ -59,9 +59,9 @@ class OrbitPropagatorR2BP:
         y_dot = R2BP_dyn(t, y, self.primary["mu"])
 
         if self.perts['J2']:
-            a_pert = pert_fun.J2_perturbation(t, y, self.primary["mu"], self.primary["J2"], self.primary["Radius"])
+            a_pert = pert_fun.J2_perturbation(t, y, self.primary["mu"], self.primary["J2"], self.primary["radius"])
             y_dot[3:] += a_pert
-        #if self.perts['3rd_body']:
+        # if self.perts['3rd_body']:
         #    a_pert = pert_fun.third_body(t, y, self.primary["mu"], mu_third, perturbation_body)
         #    y_dot[3:] += a_pert
 
@@ -76,40 +76,40 @@ class OrbitPropagatorR2BP:
         self.vv_out = self.y_out[:, 3:]
         return
 
-    def plot_3D(self, show_plot=False, save_plot=False, title='Test title'):
+    def plot_3D(self, label=['Trajectory'], show_plot=False, save_plot=False, title='Orbit trajectory 3D'):
         fig_plot = plt.figure(figsize=(8, 6))
         ax_plot = fig_plot.add_subplot(projection='3d')
 
         # plot trajectory
-        ax_plot.plot(self.rr_out[:, 0], self.rr_out[:, 1], self.rr_out[:, 2], lw=1, label='Trajectory')
-        ax_plot.plot([self.rr_out[0, 0]], [self.rr_out[0, 1]], [self.rr_out[0, 2]], 'o', label='Initial position')
-        ax_plot.plot([self.rr_out[-1, 0]], [self.rr_out[-1, 1]], [self.rr_out[-1, 2]], 'd', label='Final position')
+        # ax_plot.plot(self.rr_out[:, 0], self.rr_out[:, 1], self.rr_out[:, 2], lw=1, label='Trajectory')
+        # ax_plot.plot([self.rr_out[0, 0]], [self.rr_out[0, 1]], [self.rr_out[0, 2]], 'o', label='Initial position')
+        # ax_plot.plot([self.rr_out[-1, 0]], [self.rr_out[-1, 1]], [self.rr_out[-1, 2]], 'd', label='Final position')
+        plot_args = {
+            'title': title,
+            'show_plot': show_plot,
+            'save_plot': save_plot,
+            'filename': title + '.png',
+            'xlabel': 'x-axis',
+            'ylabel': 'y-axis',
+            'zlabel': 'z-axis',
+            'ul': 'km',
+        }
+        plot_n_orbits([self.rr_out], labels=label, args=plot_args, ax=ax_plot)
 
         # plot central body
-        u_p, v_p = np.meshgrid(np.linspace(0, 2 * np.pi, 15), np.linspace(0, np.pi, 15))
-        x_p = self.primary["Radius"] * np.cos(u_p) * np.sin(v_p)
-        y_p = self.primary["Radius"] * np.sin(u_p) * np.sin(v_p)
-        z_p = self.primary["Radius"] * np.cos(v_p)
-        ax_plot.plot_surface(x_p, y_p, z_p, cmap='Blues')
+        u_p, v_p = np.meshgrid(np.linspace(0, 2 * np.pi, 25), np.linspace(0, np.pi, 25))
+        x_p = self.primary["radius"] * np.cos(u_p) * np.sin(v_p)
+        y_p = self.primary["radius"] * np.sin(u_p) * np.sin(v_p)
+        z_p = self.primary["radius"] * np.cos(v_p)
+        ax_plot.plot_surface(x_p, y_p, z_p, cmap=self.primary["cmap"], alpha=0.3)
 
-        # set plot limits for equal axis
-        max_val = np.max(np.abs(self.rr_out))
-        ax_plot.set_xlim([-max_val, max_val])
-        ax_plot.set_ylim([-max_val, max_val])
-        ax_plot.set_zlim([-max_val, max_val])
-
-        ax_plot.set_xlabel('X [km]')
-        ax_plot.set_ylabel('Y [km]')
-        ax_plot.set_zlabel('Z [km]')
-
-        ax_plot.set_title(title)
         plt.legend()
 
         if show_plot:
             plt.show()
 
         if save_plot:
-            plt.savefig(title+'.png', dpi=300)
+            plt.savefig(title + '.png', dpi=300)
 
         return
 
@@ -120,7 +120,8 @@ class OrbitPropagatorR2BP:
         # # init array to store keplerian parameters
         # self.kp_out = np.zeros([self.n_step, 6])
         for i_step in range(self.n_step):
-            self.kp_out[i_step, :] = rv2kp(self.rr_out[i_step, :], self.vv_out[i_step, :], self.primary["mu"], deg=degree)
+            self.kp_out[i_step, :] = rv2kp(self.rr_out[i_step, :], self.vv_out[i_step, :], self.primary["mu"],
+                                           deg=degree)
         return
 
     def plot_kp(self, hours=False, days=False, deg=True, show_plot=False,
@@ -154,7 +155,7 @@ class OrbitPropagatorR2BP:
         axs[0, 0].set_title('Semi-major axis vs. Time')
         axs[0, 0].set_xlabel(xlab)
         axs[0, 0].set_ylabel(r'$a$ [km]')
-        axs[0, 0].set_ylim(0, 1.2*a_max)
+        axs[0, 0].set_ylim(0, 1.2 * a_max)
         axs[0, 0].grid(True)
 
         # plot eccentricity
@@ -162,7 +163,7 @@ class OrbitPropagatorR2BP:
         axs[0, 1].set_title('Eccentricity vs. Time')
         axs[0, 1].set_xlabel(xlab)
         axs[0, 1].set_ylabel(r'$e$ [-]')
-        axs[0, 1].set_ylim(0, 1.2*e_max)
+        axs[0, 1].set_ylim(0, 1.2 * e_max)
         axs[0, 1].grid(True)
 
         # plot true anomaly
@@ -170,7 +171,7 @@ class OrbitPropagatorR2BP:
         axs[0, 2].set_title('True anomaly vs. Time')
         axs[0, 2].set_xlabel(xlab)
         axs[0, 2].set_ylabel(r'$\theta$ [deg]')
-        axs[0, 2].set_ylim(0, 2*pi_for_plot)
+        axs[0, 2].set_ylim(0, 2 * pi_for_plot)
         axs[0, 2].grid(True)
 
         # plot RAAN
@@ -178,7 +179,7 @@ class OrbitPropagatorR2BP:
         axs[1, 0].set_title('RAAN vs. Time')
         axs[1, 0].set_xlabel(xlab)
         axs[1, 0].set_ylabel(r'$\Omega$ [deg]')
-        axs[1, 0].set_ylim(0, 2*pi_for_plot)
+        axs[1, 0].set_ylim(0, 2 * pi_for_plot)
         axs[1, 0].grid(True)
 
         # plot inclination
@@ -194,7 +195,7 @@ class OrbitPropagatorR2BP:
         axs[1, 2].set_title('Pericenter anomaly vs. Time')
         axs[1, 2].set_xlabel(xlab)
         axs[1, 2].set_ylabel(r'$\omega$ [deg]')
-        axs[1, 2].set_ylim(0, 2*pi_for_plot)
+        axs[1, 2].set_ylim(0, 2 * pi_for_plot)
         axs[1, 2].grid(True)
 
         if show_plot:
@@ -205,8 +206,8 @@ class OrbitPropagatorR2BP:
 # TEST
 if __name__ == '__main__':
     # plt.style.use('dark_background')
-    R_earth = CelBody.Earth["Radius"]
-    omega_earth = 2 * np.pi / CelBody.Earth["sidereal_day"]
+    R_earth = CelBody.earth["radius"]
+    omega_earth = 2 * np.pi / CelBody.earth["sidereal_day"]
 
     # Orbit parameters
     altitude = 550.
@@ -219,7 +220,7 @@ if __name__ == '__main__':
     theta = 0.0
     kp0 = [a, eccentricity, incl, Omega, omega, theta]
 
-    t_span = np.linspace(0, 1*86400, 1000)
+    t_span = np.linspace(0, 1 * 86400, 1000)
 
     op = OrbitPropagatorR2BP(kp0, t_span, coes=True, deg=True)
     op.plot_3D(show_plot=True)
@@ -229,12 +230,12 @@ if __name__ == '__main__':
     rr = op.rr_out
     kp_orbit = op.kp_out
 
-
     # init figure
     fig = plt.figure()
     ax = fig.add_subplot(projection='3d')
     # ax = p3.Axes3D(fig)
     max_r = np.max(abs(rr))
+    ax.set_aspect('equal')
     ax.set_xlim(- max_r, max_r)
     ax.set_ylim(- max_r, max_r)
     ax.set_zlim(- max_r, max_r)
@@ -304,18 +305,17 @@ if __name__ == '__main__':
         ax.plot_surface(_x, _y, _z, cmap='Blues')"""
         theta = omega_earth * t_span[i]
         # PlotOrbit.plot_sphere(R_earth, theta=theta)
-        PlotOrbit.plot_plantet(R_earth, texture_path, theta=theta)
+        plot_plantet(R_earth, texture_path, theta=theta)
 
         # plot orbit position and tail
         if i < n_tail:
-            ax.plot(rr[:i+1, 0], rr[:i+1, 1], rr[:i+1, 2], 'b--')
+            ax.plot(rr[:i + 1, 0], rr[:i + 1, 1], rr[:i + 1, 2], 'b--')
         else:
             i_low = i - n_tail
-            ax.plot(rr[i_low:i+1, 0], rr[i_low:i+1, 1], rr[i_low:i+1, 2], 'b--')
+            ax.plot(rr[i_low:i + 1, 0], rr[i_low:i + 1, 1], rr[i_low:i + 1, 2], 'b--')
         ax.plot(rr[i, 0], rr[i, 1], rr[i, 2], 'ko', lw=2)
 
         camera.snap()
 
     animation = camera.animate(interval=100, blit=True)
     plt.show()
-

@@ -1,13 +1,12 @@
 import numpy as np
 from matplotlib import pyplot as plt
 
-from Functions.OrbitPropagator.R2BP import OrbitPropagatorR2BP as OP
-from Functions.OrbitPropagator.R2BP import null_perturbation
-import Functions.Utilities.SolarSystemBodies as CelBody
+from src.OrbitPropagator.R2BP import OrbitPropagatorR2BP as OP
+from src.OrbitPropagator.R2BP import null_perturbation
+import src.Utilities.SolarSystemBodies as CelBody
 
 if __name__ == '__main__':
-    plt.style.use('dark_background')
-    R_earth = CelBody.Earth["Radius"]
+    R_earth = CelBody.earth["radius"]
 
     # Orbit parameters
     altitude = 550.

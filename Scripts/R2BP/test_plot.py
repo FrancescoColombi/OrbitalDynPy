@@ -3,8 +3,8 @@ from matplotlib import pyplot as plt
 
 from poliastro.bodies import Earth
 
-from Functions.OrbitPropagator.R2BP import OrbitPropagatorR2BP as OP
-from Functions.Utilities.PlotOrbit import plot_n_orbits
+from src.OrbitPropagator.R2BP import OrbitPropagatorR2BP as OP
+from src.Utilities.plotting_tools import plot_n_orbits
 
 
 if __name__ == '__main__':

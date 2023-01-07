@@ -2,12 +2,12 @@ import numpy as np
 from numpy import arccos as acos
 from matplotlib import pyplot as plt
 
-from Functions.Utilities.SolarSystemBodies import Earth
+from src.Utilities.SolarSystemBodies import earth
 
 # Rate of revolution of the Earth
-n_earth = 2 * np.pi / (Earth["sidereal_year"] * 86400)
+n_earth = 2 * np.pi / (earth["sidereal_year"] * 86400)
 
-def inclination_sunsynch(a, e=0., mu=Earth["mu"], Rp=Earth["Radius"], J2=Earth["J2"], Omega_dot=n_earth, deg=True):
+def inclination_sunsynch(a, e=0., mu=earth["mu"], Rp=earth["radius"], J2=earth["J2"], Omega_dot=n_earth, deg=True):
     """
 
     :param a: Semi-major axis
@@ -34,8 +34,8 @@ def inclination_sunsynch(a, e=0., mu=Earth["mu"], Rp=Earth["Radius"], J2=Earth["
 
 
 if __name__ == '__main__':
-    h_span = np.linspace(300, 1500)
-    r_earth = Earth["Radius"]
+    h_span = np.linspace(300, 5000)
+    r_earth = earth["radius"]
 
     i_sso = np.zeros(len(h_span))
     for n in range(len(h_span)):
@@ -44,8 +44,8 @@ if __name__ == '__main__':
 
     fig, ax = plt.subplots()
     ax.plot(h_span, i_sso)
-    ax.set_xlim([300, 1500])
-    ax.set_ylim([96, 103])
+    ax.set_xlim([h_span[0], h_span[-1]])
+    ax.set_ylim([90, i_sso[-1]])
     ax.set_xlabel('Altitude [km]')
     ax.set_ylabel('Inclination [deg]')
     ax.set_title('Sun-Synchronous Orbit (e = 0)')

@@ -1,25 +1,21 @@
-import numpy as np
+# import numpy as np
 
-import matplotlib.pyplot as plt
-import plotly.graph_objects as go
-import plotly.express as px
+# import matplotlib.pyplot as plt
+# import plotly.graph_objects as go
+# import plotly.express as px
 
 from spiceypy import spiceypy as spice
 
+from src.GroundTrack import *
+from src.OrbitPropagator.R2BP import *
+from src.SunSynch import *
+from src.Utilities.KeplerianParameters import *
+from src.Utilities.TimeConversion import *
+
 # from astropy import constants as const
 # from astropy import units as u
-
 # from poliastro.bodies import Earth, Moon, Sun
 # from poliastro.twobody import Orbit
-
-
-from Functions.GroundTrack import *
-from Functions.OrbitPropagator.R2BP import OrbitPropagatorR2BP as op
-from Functions.OrbitPropagator.R2BP import *
-from Functions.Utilities.SolarSystemBodies import *
-from Functions.Utilities.KeplerianParameters import *
-from Functions.Utilities.TimeConversion import *
-from Functions.SunSynch import *
 
 if __name__ == '__main__':
     # Constants
@@ -34,15 +30,25 @@ if __name__ == '__main__':
     omega_earth = 2 * np.pi / ST_earth_rot
 
     # Orbit parameters
-    altitude = 15000.
+    altitude = 5000.
     a = R_earth + altitude
     # a = 26600
-    eccentricity = 0.
+    eccentricity = 0.0
     # incl = inclination_sunsynch(a, eccentricity)
     incl = 15
     Omega = 10.0
     omega = 200.0
     theta = 150.0
+
+    """
+    # Molniya orbital elements
+    Omega = 30.0
+    incl = 63.4
+    omega = 270.0
+    a = 26600.0
+    eccentricity = 0.7
+    """
+
     kp0 = [a, eccentricity, incl, Omega, omega, theta]
     rr0, vv0 = kp2rv(kp0, mu_earth)
     print('Keplerian parameter:     {0}'.format(kp0))
@@ -50,6 +56,8 @@ if __name__ == '__main__':
     print('Initial velocity:        {0} km/s'.format(vv0))
     T_orb = 2 * np.pi * np.sqrt(a ** 3 / mu_earth)
     print('Orbital period:          {0} min'.format(T_orb / 60))
+    print('Pericenter:              {0} km'.format(a * (1 - eccentricity)))
+    print('Apocenter:               {0} km'.format(a * (1 + eccentricity)))
 
     # Reference time
     kernel_dir = "D:/Documents/Francesco/Space_Engineering/spice_kernels/"
@@ -65,11 +73,11 @@ if __name__ == '__main__':
     # Orbit propagation
     X0 = np.hstack((rr0, vv0))
     t0 = 0
-    tf = 50 * T_orb
+    tf = 20 * T_orb
     t_out = np.arange(t0, tf, 30)
     perturbations = null_perturbation()
     perturbations["J2"] = True
-    orbit = op(X0, t_out, Earth, perts=perturbations)
+    orbit = OrbitPropagatorR2BP(X0, t_out, earth, perts=perturbations)
     rr_orb = orbit.rr_out
     vv_orb = orbit.vv_out
     orbit.plot_3D(show_plot=False)
@@ -149,7 +157,7 @@ if __name__ == '__main__':
     fig1 = plt.figure()
     ax1 = fig1.add_subplot(projection='3d')
     ax1.plot(rr_lh[0, :], rr_lh[1, :], rr_lh[2, :], lw=1, label='Trajectory in Local Horizon')
-    ax1.plot(visibility_rr_lh[0, :], visibility_rr_lh[1, :], visibility_rr_lh[2, :], 'ro', markersize=1)
+    ax1.plot(visibility_rr_lh[0, :], visibility_rr_lh[1, :], visibility_rr_lh[2, :], 'r.', markersize=1)
     max_val = np.max(np.abs(rr_lh))
     # visibility cone
     theta_circle = np.linspace(-180, 180) * np.pi / 180
@@ -157,7 +165,7 @@ if __name__ == '__main__':
     x = np.cos(visibility_aperture * np.pi / 180) * np.outer(np.ones(np.size(theta_circle)), R_a).T
     y = np.sin(visibility_aperture * np.pi / 180) * np.outer(np.cos(theta_circle), R_a).T
     z = np.sin(visibility_aperture * np.pi / 180) * np.outer(np.sin(theta_circle), R_a).T
-    ax1.plot_surface(x, y, z, rstride=4, cstride=4)
+    ax1.plot_surface(x, y, z, rstride=4, cstride=4, alpha=0.3)
     ax1.set_aspect('equal')
     ax1.set_xlabel('Zenith [km]')
     ax1.set_ylabel('East [km]')
@@ -166,8 +174,8 @@ if __name__ == '__main__':
 
     fig2 = plt.figure(figsize=(8, 6))
     ax2 = fig2.add_subplot()
-    ax2.plot(long, lat, 'bo', markersize=1.5)
-    ax2.plot(visibility_pos[1, :], visibility_pos[0, :], 'ro', markersize=1.5)
+    ax2.plot(long, lat, 'b.', markersize=1.5)
+    ax2.plot(visibility_pos[1, :], visibility_pos[0, :], 'r.', markersize=1.5)
     ax2.plot(ground_station_coord[1], ground_station_coord[0], 'mo', markersize=3, label='Ground Station')
     ax2.annotate('ground station', [ground_station_coord[1], ground_station_coord[0]], textcoords='offset points',
                  xytext=(0, 2), ha='center', color='m', fontsize='small')
@@ -175,7 +183,6 @@ if __name__ == '__main__':
     ax2.set_ylim([-90, 90])
     ax2.set_xticks(np.arange(-180, 180, 20))
     ax2.set_yticks(np.arange(-90, 90, 10))
-    ax2.set_aspect('equal')
     ax2.set_aspect('equal')
     ax2.set_xlabel('Longitude [degrees]')
     ax2.set_ylabel('Latitude [degrees]')
@@ -209,6 +216,9 @@ if __name__ == '__main__':
     coords = [np.transpose(np.reshape([lat, long], (2, -1)))]
     piacenza = [45.042236, 9.679320, 'Piacenza', 'r']
     # figure1, ax1 = plot_ground_track(coords)
+    args = {
+
+    }
     plot_ground_track(coords, ground_stations=[piacenza])
 
     print("End of script")

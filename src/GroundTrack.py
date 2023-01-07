@@ -1,6 +1,6 @@
 import numpy as np
 import matplotlib.pyplot as plt
-from Functions.Utilities.FrameTransformation import *
+from src.Utilities.FrameTransformation import *
 import os
 
 COASTLINES_COORDINATES_FILE = os.path.join(os.path.dirname(os.path.realpath(__file__)),
@@ -91,12 +91,12 @@ def ground_track(tt, rr, t_0, PMST_0, omega_planet, deg=True):
     return alpha, delta, latitude, longitude, r_norm
 
 
-def plot_ground_track(coords, labels=None, show_plot=True, colors=['b', 'r', 'g', 'y', 'm'],
-                      ground_stations=None, save_plot=False, filename='groundtrack.png', dpi=300):
+def plot_ground_track(coords, args=None, ground_stations=None):
     """
     This functions plot the ground track of each orbit given as input
 
     :param coords:              List of 2D arrays with [lat, long] of each orbit
+    :param args:                List of arguments of ground track plot settings
     :param labels:              List of labels of each orbit
     :param show_plot:           Bool
     :param colors:              List of colors of each orbit
@@ -108,11 +108,24 @@ def plot_ground_track(coords, labels=None, show_plot=True, colors=['b', 'r', 'g'
 
     :return:
     """
+    _args = {
+        'fig_size': (16, 8),
+        'labels': None,
+        'colors': ['b', 'r', 'g', 'y', 'm'],
+        'show_plot': True,
+        'save_plot': False,
+        'filename': "groundtrack.png",
+        'dpi': 300,
+    }
+    if args is not None:
+        for key in args.keys():
+            _args[key] = args[key]
 
-    # init figure
     if ground_stations is None:
         ground_stations = []
-    fig = plt.figure(figsize=(16, 8))
+
+    # init figure
+    fig = plt.figure(figsize=_args['fig_size'])
     ax = fig.add_subplot()
 
     # load coastline coords [long, lat]
@@ -122,17 +135,16 @@ def plot_ground_track(coords, labels=None, show_plot=True, colors=['b', 'r', 'g'
 
     ax.imshow(plt.imread(EARTH_SURFACE_IMAGE), extent=[-180, 180, -90, 90])
 
-
     # plots orbits
     for n in range(len(coords)):
-        if labels is None:
-            label = 'orbit #' + str(n)
+        if _args['labels'] is None:
+            label = 'orbit #' + str(n + 1)
         else:
-            label = labels[n]
+            label = _args['labels'][n]
 
         # plot starting point and ground track
-        ax.plot(coords[n][0, 1], coords[n][0, 0], colors[n] + 'o')
-        ax.plot(coords[n][:, 1], coords[n][:, 0], colors[n] + 'o', markersize=1.5, label=label)
+        ax.plot(coords[n][0, 1], coords[n][0, 0], _args['colors'][n] + 'o')
+        ax.plot(coords[n][:, 1], coords[n][:, 0], _args['colors'][n] + '.', markersize=1.5, label=label)
 
     # plot ground station and their visibility area
     for city in ground_stations:
@@ -155,11 +167,11 @@ def plot_ground_track(coords, labels=None, show_plot=True, colors=['b', 'r', 'g'
     ax.set_ylabel('Latitude [degrees]')
     ax.legend()
 
-    if show_plot:
+    if _args['show_plot']:
         plt.show()
 
-    if save_plot:
-        plt.savefig(filename, dpi=dpi)
+    if _args['save_plot']:
+        plt.savefig(_args['filename'], dpi=_args['dpi'])
 
     return fig, ax
 
@@ -244,7 +256,7 @@ def ground_station_visibility(tt, rr, gs_coord, R_gs, t_0, PMST_0, omega_planet,
 
 """
 def city_dict():
-    with open('/Francesco/OrbitalDynPy/Functions/Utilities/world_cities.csv', 'r') as f:
+    with open('/Francesco/OrbitalDynPy/src/Utilities/world_cities.csv', 'r') as f:
         lines = f.readlines()
 
     header = lines[0]
