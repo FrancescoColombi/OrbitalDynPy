@@ -23,7 +23,7 @@ COLORS = [
              'white', 'lightpink', 'royalblue', 'lime', 'aqua'] * 100
 
 
-def plot_n_orbits(rr_orbits, labels=None, args=None, ax=None):
+def plot_n_orbits(rr_orbits, labels=None, args={}, ax=None):
     """
     This function plots "n" orbits given in input
 
@@ -50,9 +50,8 @@ def plot_n_orbits(rr_orbits, labels=None, args=None, ax=None):
         'filename': "orbit trajectory.png",
         'dpi': 300,
     }
-    if args is not None:
-        for key in args.keys():
-            _args[key] = args[key]
+    for key in args.keys():
+        _args[key] = args[key]
 
     if labels is None:
         for i_lab in range(len(rr_orbits)):

@@ -1,8 +1,10 @@
-# import numpy as np
+import numpy as np
+import pandas as pd
+import scipy as sp
 
 # import matplotlib.pyplot as plt
 # import plotly.graph_objects as go
-# import plotly.express as px
+import plotly.express as px
 
 from spiceypy import spiceypy as spice
 
@@ -30,12 +32,12 @@ if __name__ == '__main__':
     omega_earth = 2 * np.pi / ST_earth_rot
 
     # Orbit parameters
-    altitude = 5000.
+    altitude = 800.
     a = R_earth + altitude
     # a = 26600
     eccentricity = 0.0
-    # incl = inclination_sunsynch(a, eccentricity)
-    incl = 15
+    incl = inclination_sunsynch(a, eccentricity)
+    # incl = 15
     Omega = 10.0
     omega = 200.0
     theta = 150.0
@@ -63,7 +65,7 @@ if __name__ == '__main__':
     kernel_dir = "D:/Documents/Francesco/Space_Engineering/spice_kernels/"
     meta_kernel = kernel_dir + 'meta_kernel.tm'
     spice.furnsh(meta_kernel)
-    date0 = "2020 jan 01 15:22:40"
+    date0 = "2025 jan 14 15:22:40"
     jd0 = spice.utc2et(date0) / 86400
     spice.kclear()
 
@@ -74,7 +76,8 @@ if __name__ == '__main__':
     X0 = np.hstack((rr0, vv0))
     t0 = 0
     tf = 20 * T_orb
-    t_out = np.arange(t0, tf, 30)
+    # tf = 86400 * 5
+    t_out = np.arange(t0, tf, 20)
     perturbations = null_perturbation()
     perturbations["J2"] = True
     orbit = OrbitPropagatorR2BP(X0, t_out, earth, perts=perturbations)
@@ -83,29 +86,15 @@ if __name__ == '__main__':
     orbit.plot_3D(show_plot=False)
     orbit.plot_kp(show_plot=True)
 
-    """# plot orbit
-    fig = plt.figure(figsize=[6, 6], tight_layout=True)
-    ax = fig.add_subplot(projection='3d')
-    ax.plot(rr_orb[0, :], rr_orb[1, :], rr_orb[2, :], lw=1, label='orbit')
-    ax.scatter(rr_orb[0, 0], rr_orb[1, 0], rr_orb[2, 0], color='red')
-    ax.set_xlabel('x [km]')
-    ax.set_ylabel('y [km]')
-    ax.set_zlabel('z [km]')
-    maxval = np.abs(rr_orb).max()
-    ax.set_xlim([-maxval, maxval])
-    ax.set_ylim([-maxval, maxval])
-    ax.set_zlim([-maxval, maxval])
-    ax.set_title('Earth Centered - Earth Equatorial Frame')
-    plt.show()"""
-
-    """# test using plotly for nice plots
+    """
+    # test using plotly for nice plots
     data = {'time': t_out,
-            'x':    y_out[:, 0],
-            'y':    y_out[:, 1],
-            'z':    y_out[:, 2],
-            'vx':   y_out[:, 3],
-            'vy':   y_out[:, 4],
-            'vz':   y_out[:, 5]}
+            'x':    rr_orb[:, 0],
+            'y':    rr_orb[:, 1],
+            'z':    rr_orb[:, 2],
+            'vx':   vv_orb[:, 0],
+            'vy':   vv_orb[:, 1],
+            'vz':   vv_orb[:, 2]}
     df = pd.DataFrame(data)
     print(df.head())
     fig_plotly = px.line_3d(df, x='x', y='y', z='z')
@@ -114,7 +103,8 @@ if __name__ == '__main__':
     yratio = np.abs(rr_orb[1, :]).max() / maxval
     zratio = np.abs(rr_orb[2, :]).max() / maxval
     fig_plotly.update_layout(scene_aspectmode='manual', scene_aspectratio=dict(x=xratio, y=yratio, z=zratio))
-    fig_plotly.show()"""
+    fig_plotly.show()
+    """
 
     # Ground Track
     # t_0 = jd0 * 86400  # [sec]
@@ -122,17 +112,19 @@ if __name__ == '__main__':
     tt = t_0 + t_out
     alpha, delta, lat, long, _ = ground_track(tt, rr_orb, t_0, GMST_0, omega_earth)
 
-    ground_station_coord = [45.042236, 9.679320]
-    visibility_aperture = 75
-    visibility, rr_lh, visibility_window = ground_station_visibility(tt, rr_orb, ground_station_coord, R_earth, t_0,
-                                                                     GMST_0, omega_earth, visibility_aperture)
+    ground_station_coord = [40.452728, -4.367587]  # Cerebros
+    ground_station_coord = [67.858428, 20.966880]  # Kiruna KIR-2
+    h_gs = 385.8 / 1000
+    visibility_aperture = 70
+    visibility, rr_lh, visibility_window = ground_station_visibility(tt, rr_orb, ground_station_coord, R_earth + h_gs,
+                                                                     t_0, GMST_0, omega_earth, visibility_aperture)
 
     # print(visibility_window)
     n_visibility = len(visibility_window)
     print("Number of visibility contact = {0}".format(n_visibility))
     for i_n in range(n_visibility):
         contact_period = visibility_window[i_n][1] - visibility_window[i_n][0]
-        print("Visibility Contact # {0}".format(i_n))
+        print("Visibility Contact # {0}".format(i_n + 1))
         print("Contact Visibility Period = {0} min".format(contact_period/60))
 
     fig0 = plt.figure()
@@ -147,7 +139,7 @@ if __name__ == '__main__':
     visibility_rr_lh = np.zeros([3, visibility_num])
     id_counter = 0
     for i_n in range(len(tt)):
-        rr_lh[:, i_n] = rr_lh[:, i_n] / np.linalg.norm(rr_lh[:, i_n])
+        rr_lh[:, i_n] = rr_lh[:, i_n] / np.linalg.norm(rr_lh[:, i_n])  # normalize for topocentric celestial sphere
         if visibility[i_n]:
             visibility_pos[0, id_counter] = lat[i_n]
             visibility_pos[1, id_counter] = long[i_n]
@@ -162,15 +154,16 @@ if __name__ == '__main__':
     # visibility cone
     theta_circle = np.linspace(-180, 180) * np.pi / 180
     R_a = np.linspace(0, max_val)
-    x = np.cos(visibility_aperture * np.pi / 180) * np.outer(np.ones(np.size(theta_circle)), R_a).T
+    z = np.cos(visibility_aperture * np.pi / 180) * np.outer(np.ones(np.size(theta_circle)), R_a).T
     y = np.sin(visibility_aperture * np.pi / 180) * np.outer(np.cos(theta_circle), R_a).T
-    z = np.sin(visibility_aperture * np.pi / 180) * np.outer(np.sin(theta_circle), R_a).T
+    x = np.sin(visibility_aperture * np.pi / 180) * np.outer(np.sin(theta_circle), R_a).T
     ax1.plot_surface(x, y, z, rstride=4, cstride=4, alpha=0.3)
+    ax1.plot(0, 0, 0, 'mo', label='Ground Station')
     ax1.set_aspect('equal')
-    ax1.set_xlabel('Zenith [km]')
-    ax1.set_ylabel('East [km]')
-    ax1.set_zlabel('North [km]')
-    ax1.set_title('Local Horizon view from Ground Station')
+    ax1.set_xlabel('- South, + North [km]')
+    ax1.set_ylabel('- East, + West [km]')
+    ax1.set_zlabel('Zenith [km]')
+    ax1.set_title('Topocentric view from Ground Station')
 
     fig2 = plt.figure(figsize=(8, 6))
     ax2 = fig2.add_subplot()
@@ -216,9 +209,9 @@ if __name__ == '__main__':
     coords = [np.transpose(np.reshape([lat, long], (2, -1)))]
     piacenza = [45.042236, 9.679320, 'Piacenza', 'r']
     # figure1, ax1 = plot_ground_track(coords)
-    args = {
-
+    plot_args = {
+        'show_surface': None
     }
-    plot_ground_track(coords, ground_stations=[piacenza])
+    plot_ground_track(coords, args=plot_args, ground_stations=[piacenza])
 
     print("End of script")

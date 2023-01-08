@@ -91,7 +91,7 @@ def ground_track(tt, rr, t_0, PMST_0, omega_planet, deg=True):
     return alpha, delta, latitude, longitude, r_norm
 
 
-def plot_ground_track(coords, args=None, ground_stations=None):
+def plot_ground_track(coords, args={}, ground_stations=None):
     """
     This functions plot the ground track of each orbit given as input
 
@@ -112,14 +112,15 @@ def plot_ground_track(coords, args=None, ground_stations=None):
         'fig_size': (16, 8),
         'labels': None,
         'colors': ['b', 'r', 'g', 'y', 'm'],
+        'show_coasline': COASTLINES_COORDINATES_FILE,
+        'show_surface': EARTH_SURFACE_IMAGE,
         'show_plot': True,
         'save_plot': False,
         'filename': "groundtrack.png",
         'dpi': 300,
     }
-    if args is not None:
-        for key in args.keys():
-            _args[key] = args[key]
+    for key in args.keys():
+        _args[key] = args[key]
 
     if ground_stations is None:
         ground_stations = []
@@ -128,12 +129,14 @@ def plot_ground_track(coords, args=None, ground_stations=None):
     fig = plt.figure(figsize=_args['fig_size'])
     ax = fig.add_subplot()
 
-    # load coastline coords [long, lat]
-    coast_coords = np.genfromtxt(COASTLINES_COORDINATES_FILE, delimiter=',')
-    # plot coastline
-    ax.plot(coast_coords[:, 0], coast_coords[:, 1], 'ko', markersize=0.2)
+    if _args['show_coasline'] is not None:
+        # load coastline coords [long, lat]
+        coast_coords = np.genfromtxt(_args['show_coasline'], delimiter=',')
+        # plot coastline
+        ax.plot(coast_coords[:, 0], coast_coords[:, 1], 'k.', markersize=0.5)
 
-    ax.imshow(plt.imread(EARTH_SURFACE_IMAGE), extent=[-180, 180, -90, 90])
+    if _args['show_surface'] is not None:
+        ax.imshow(plt.imread(_args['show_surface']), extent=[-180, 180, -90, 90])
 
     # plots orbits
     for n in range(len(coords)):
@@ -176,7 +179,7 @@ def plot_ground_track(coords, args=None, ground_stations=None):
     return fig, ax
 
 
-def ground_station_visibility(tt, rr, gs_coord, R_gs, t_0, PMST_0, omega_planet, theta_aperture):
+def ground_station_visibility(tt, rr, gs_coord, r_gs, t_0, pmst_0, omega_planet, theta_aperture):
     """
     Return if the spacecraft/target is in visibility from a given ground station
     :param tt:              [sec]       Time past from reference time t_0 for PMST_0 estimation
@@ -184,17 +187,18 @@ def ground_station_visibility(tt, rr, gs_coord, R_gs, t_0, PMST_0, omega_planet,
     :param rr:              [length]    Position vectors in Equatorial Frame
                                         Array size = [3, n]
     :param gs_coord:        [deg]       Latitude and Longitude of the Ground Station [lat, long]
-    :param R_gs:            [km]        Distance from CoM of the primary of the Ground Station [km]
+    :param r_gs:            [km]        Distance from CoM of the primary of the Ground Station [km]
     :param t_0:             [sec]       Reference time
-    :param PMST_0:          [h]         Prime Meridion Sidereal Time is the time angle of the Prime
+    :param pmst_0:          [h]         Prime Meridion Sidereal Time is the time angle of the Prime
                                         Meridian of the planet wrt the Vernal Equinox at time t_0
     :param omega_planet:    [rad/sec]   Rotation rate of the planet (sidereal)
     :param theta_aperture   [rad]       Visibility aperture angle
 
     :return: visibility, rr_lh, vis_window.
              visibility     [-]         Visibility vector vs tt (visibility[i] = 1 if in visibility at time = tt[i])
-             rr_lh          [km]        Position vector in the Ground Station centered Local Horizon Frame
-             vis_window     [sec]       Array size = [n, 2] where n = number of times spacecraft is in visibility
+             rr_topo        [km]        Position vector in the Ground Station Topocentric Frame
+                                        [x: North, y: West, z: Zenith]
+             vis_window     [sec]       List Array = [n][1, 2] where n = number of times spacecraft is in visibility
                                         vis_window = [initial time in visibility, final time in visibility]
     """
 
@@ -209,21 +213,22 @@ def ground_station_visibility(tt, rr, gs_coord, R_gs, t_0, PMST_0, omega_planet,
 
     visibility = np.zeros(len(tt), dtype=int)
     rr_lh = np.empty([3, len(tt)])
+    rr_topo = np.empty([3, len(tt)])
 
     gs_lat = gs_coord[0] * np.pi / 180
     gs_long = gs_coord[1] * np.pi / 180
     # Initial Prime Meridian angle of the planet [rad]
-    theta_0 = PMST_0 * np.pi / 12
+    theta_0 = pmst_0 * np.pi / 12
     # aperture angle from deg to rad
     theta_aperture = theta_aperture * np.pi / 180
 
     # Position of the Ground station in the Primary centered Local horizon frame
-    rr_gs_lh = np.array([R_gs, 0, 0])
-    zenith = np.array([1, 0, 0])
+    rr_gs_lh = np.array([r_gs, 0, 0])  # Local Horizon = x: Zenith, y: East, z: North
+    zenith = np.array([0, 0, 1])  # Topocentric Frame  = x: North, y: West, z: Zenith
     in_visibility = False
     vis_window = []
-    t_vis_start = 0
-    t_vis_end = 0
+    vis_entrance = 0
+    vis_exit = 0
 
     for i_t in range(len(tt)):
         # Transform the coordinates from Primary Centric Equatorial Frame to Local Horizon Frame of the Ground Station
@@ -231,7 +236,8 @@ def ground_station_visibility(tt, rr, gs_coord, R_gs, t_0, PMST_0, omega_planet,
         theta = gs_long + theta_0 + omega_planet * (tt[i_t] - t_0)
         T_theta = T_Rz(theta)
         T_phi = T_Ry(-gs_lat)
-
+        # Local Horizon:
+        # x: Zenith, y: East, z: North
         T_equatorial2localhorizon = T_phi @ T_theta
 
         # from Inertial Equatorial Primary Centric frame to Local Horizon Primary Centric frame
@@ -239,19 +245,22 @@ def ground_station_visibility(tt, rr, gs_coord, R_gs, t_0, PMST_0, omega_planet,
         # translate to Ground Station Centric reference Frame
         rr_lh_i = rr_lh_i - rr_gs_lh
         rr_lh[:, i_t] = rr_lh_i
-        u_rr_lh = rr_lh_i / np.linalg.norm(rr_lh_i)
+        rr_topo[0, i_t] = rr_lh_i[2]
+        rr_topo[1, i_t] = - rr_lh_i[1]
+        rr_topo[2, i_t] = rr_lh_i[0]
+        u_rr_lh = rr_topo[:, i_t] / np.linalg.norm(rr_topo[:, i_t])
         if np.dot(u_rr_lh, zenith) >= np.cos(theta_aperture):
             visibility[i_t] = 1
             if not in_visibility:
                 in_visibility = True
-                t_vis_start = tt[i_t]
+                vis_entrance = tt[i_t]
         else:
             if in_visibility:
                 in_visibility = False
-                t_vis_end = tt[i_t]
-                vis_window.append([t_vis_start, t_vis_end])
+                vis_exit = tt[i_t]
+                vis_window.append([vis_entrance, vis_exit])
 
-    return visibility, rr_lh, vis_window
+    return visibility, rr_topo, vis_window
 
 
 """

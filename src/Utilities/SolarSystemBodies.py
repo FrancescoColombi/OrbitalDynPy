@@ -32,7 +32,6 @@ earth = {
     "name": 'Earth',
     "spice_name": 'EARTH BARYCENTER',
     "SPICE_ID": 3,
-    "body_fixed_frame": 'IAU_EARTH',
     "mu": solar_sys.Earth.k.to('km3/s2').value,   # km3/s2
     "radius": solar_sys.Earth.R.to('km').value,   # km
     "SOI": 926006.6608,                           # km
@@ -42,7 +41,8 @@ earth = {
     "J3": solar_sys.Earth.J3.value,
     "rho0": astrocon.rho0_earth.value,            # kg/m3
     "H0": astrocon.H0_earth.to('km').value,       # km
-    "cmap": 'Blues'
+    "cmap": 'Blues',
+    "body_fixed_frame": 'IAU_EARTH',
 }
 
 venus = {
