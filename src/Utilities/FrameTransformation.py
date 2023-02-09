@@ -105,7 +105,7 @@ def eq2ecef(rr, tspan, t_0, PMST_0, omega_planet):
     and assuming a constant rotational rate of the planet (omega_planet).
 
     Return the transformed vectors (array rr_ecef(n, 3))
-    and the DCM (array C_eq2ecef(n, 3, 3)) at each time of tspan (array (n))
+    and the DCM (list of n C_eq2ecef(3, 3)) at each time of tspan (array (n))
 
     :param rr:              Set of position vectors in the Equatorial frame
     :param tspan:           Array of the time corresponding to each position of the array rr
@@ -117,7 +117,7 @@ def eq2ecef(rr, tspan, t_0, PMST_0, omega_planet):
     """
     # init output
     rr_ecef = np.zeros([len(tspan), 3])
-    C_eq2ecef = np.zeros([len(tspan), 3, 3])
+    dcm_eq2ecef = []
 
     # Initial Prime Meridian angle of the planet [rad]
     theta_0 = PMST_0 * np.pi / 12
@@ -132,10 +132,10 @@ def eq2ecef(rr, tspan, t_0, PMST_0, omega_planet):
             [-sin(theta), cos(theta), 0],
             [0, 0, 1]
         ])
-        C_eq2ecef[n, :, :] = A_equatorial2pcpf
+        dcm_eq2ecef[n] = A_equatorial2pcpf
         rr_ecef[n, :] = np.dot(A_equatorial2pcpf, rr[n, :])
 
-    return rr_ecef, C_eq2ecef
+    return rr_ecef, dcm_eq2ecef
 
 
 def eq2latlong(rr, tspan, t_0, PMST_0, omega_planet):
@@ -171,3 +171,24 @@ def eq2latlong(rr, tspan, t_0, PMST_0, omega_planet):
 
         lat_long[n, :] = [latitude, longitude]
     return lat_long, r_norm
+
+
+def lvlh_framebuilder(xx):
+    """
+    Build the Direction Cosine Matrix of the LVLH-frame with respect to the Reference-frame.
+    The R-bar points at the origin of the reference frame in which the sspacecraft state is expressed.
+
+    :param xx: state vectors [position and velocity] [6]
+    :return: LVLH-frame DCM transformation 3-by-3 matrix
+    """
+
+    rr = xx[:3]  # position vector
+    vv = xx[3:]  # velocity vector
+    hh = np.cross(rr, vv)  # angular momentum vector
+
+    z_lvlh = -rr / norm(rr)  # R-bar
+    y_lvlh = -hh / norm(hh)  # H-bar
+    x_lvlh = np.cross(y_lvlh, z_lvlh)  # V-bar
+
+    dcm_lvlh = np.array([x_lvlh, y_lvlh, z_lvlh])
+    return dcm_lvlh
