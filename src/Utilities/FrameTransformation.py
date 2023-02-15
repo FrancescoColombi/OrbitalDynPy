@@ -5,6 +5,24 @@ from numpy import arccos as acos
 from numpy.linalg import norm
 
 
+def deg2rad(deg):
+    """
+    Transform the angle value from degrees to radians
+    :type deg: float
+    :return:
+    """
+    return deg * np.pi / 180
+
+
+def rad2deg(rad):
+    """
+    Transform the angle value from radians to degrees
+    :type rad: float
+    :return:
+    """
+    return rad * 180 / np.pi
+
+
 def spherical2cartesian(alpha, delta, r_norm):
     """
     Transform a set of position from the spherical representation (alpha, delta, r)
