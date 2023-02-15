@@ -87,8 +87,23 @@ delta_vv_deploy = np.array([0, 0, 0.00005])  # initial delta position = 0.05 m/s
 # delta_vv_deploy = np.array([-0.0001, 0, 0])  # initial delta position = 0.1 m/s along -V-bar (ortogonal to orbit)
 # delta_vv_deploy = np.array([0, 0, 0])  # initial delta position = 0.1 m/s along H-bar (ortogonal to orbit)
 delta_vv0 = np.dot(np.transpose(dcm_lvlh0), delta_vv_deploy)
+rr0_cubesat = rr0 + delta_rr0
+vv0_cubesat = vv0 + delta_vv0
 
-X0_cubesat = np.hstack((rr0 + delta_rr0, vv0 + delta_vv0))
+"""DELTA INITIAL ORBIT"""
+e_cubesat = 0.000005
+kp0_cubesat = [a, e_cubesat, incl, Omega, omega, theta]
+rr0_cubesat, vv0_cubesat = kp2rv(kp0_cubesat, mu_earth)
+print('Keplerian parameter:     {0}'.format(kp0_cubesat))
+print('Initial position:        {0} km'.format(rr0_cubesat))
+print('Initial velocity:        {0} km/s'.format(vv0_cubesat))
+T_orb = 2 * np.pi * np.sqrt(a ** 3 / mu_earth)
+print('Orbital period:          {0} min'.format(T_orb / 60))
+print('Pericenter:              {0} km'.format(a * (1 - e_cubesat)))
+print('Apocenter:               {0} km'.format(a * (1 + e_cubesat)))
+
+
+X0_cubesat = np.hstack((rr0_cubesat, vv0_cubesat))
 orbit_cubesat = OrbitPropagatorR2BP(X0_cubesat, t_out, earth, perts=perturbations)
 rr_cubesat = orbit_cubesat.rr_out
 vv_cubesat = orbit_cubesat.vv_out
@@ -114,34 +129,44 @@ plt.show()
 """RELATIVE MOTION IN LVLH FRAME"""
 #dcm_lvlh_list = []
 rr_delta_lvlh = np.empty([orbit_cubesat.n_step, 3])
+rr_delta_dist = np.empty([orbit_cubesat.n_step, 1])
 for n in range(orbit.n_step):
     xx_temp = np.hstack((rr_orb[n, :], vv_orb[n, :]))
     #dcm_lvlh_list[n] = lvlh_framebuilder(xx_temp)
     rr_delta_lvlh[n, :] = np.dot(lvlh_framebuilder(xx_temp), rr_delta[n, :])
+    rr_delta_dist[n] = np.linalg.norm(rr_delta[n, :])
 
 fig_rel_motion_lvlh = plt.figure()
 ax_rel_motion_lvlh = fig_rel_motion_lvlh.add_subplot(projection='3d')
 ax_rel_motion_lvlh.plot(rr_delta_lvlh[:, 0], rr_delta_lvlh[:, 1], rr_delta_lvlh[:, 2], lw=1, label='Relative Motion')
 ax_rel_motion_lvlh.plot(rr_delta_lvlh[0, 0], rr_delta_lvlh[0, 1], rr_delta_lvlh[0, 2], '.', label='Initial position')
-ax_rel_motion_lvlh.plot(0, 0, 0, '.', label='Initial position')
-# set plot equal apect ration
+ax_rel_motion_lvlh.plot(0, 0, 0, '.', label='Target')
+# set plot equal aspect ratio
 ax_rel_motion_lvlh.set_aspect('equal')
-ax_rel_motion_lvlh.set_xlabel("V - equatorial frame [km]")
-ax_rel_motion_lvlh.set_ylabel("H - equatorial frame [km]")
-ax_rel_motion_lvlh.set_zlabel("R - equatorial frame [km]")
+ax_rel_motion_lvlh.set_xlabel("V - bar [km]")
+ax_rel_motion_lvlh.set_ylabel("H - bar [km]")
+ax_rel_motion_lvlh.set_zlabel("R - bar [km]")
 ax_rel_motion_lvlh.set_title("Relative motion in LVLH Frame")
 plt.legend()
-plt.show()
 
 fig_rel_motion_vrbar = plt.figure()
 ax_rel_motion_vrbar = fig_rel_motion_vrbar.add_subplot()
 ax_rel_motion_vrbar.plot(rr_delta_lvlh[:, 0], rr_delta_lvlh[:, 2], lw=1, label='Relative Motion')
 ax_rel_motion_vrbar.plot(rr_delta_lvlh[0, 0], rr_delta_lvlh[0, 2], '.', label='Initial position')
-ax_rel_motion_vrbar.plot(0, 0, '.', label='Initial position')
-# set plot equal apect ration
+ax_rel_motion_vrbar.plot(0, 0, '.', label='Target')
+# set plot equal aspect ratio
 ax_rel_motion_vrbar.set_aspect('equal')
-ax_rel_motion_vrbar.set_xlabel("V - equatorial frame [km]")
-ax_rel_motion_vrbar.set_ylabel("R - equatorial frame [km]")
+ax_rel_motion_vrbar.set_xlabel("V - bar [km]")
+ax_rel_motion_vrbar.set_ylabel("R - bar [km]")
 ax_rel_motion_vrbar.set_title("Relative motion in LVLH Frame")
 plt.legend()
+
+fig_rel_dist = plt.figure()
+ax_rel_dist = fig_rel_dist.add_subplot()
+ax_rel_dist.plot(t_out, rr_delta_dist, lw=1, label='Relative Motion')
+ax_rel_dist.set_xlabel("time [sec]")
+ax_rel_dist.set_ylabel("Distance [km]")
+ax_rel_dist.set_title("Relative distance from targer")
+
 plt.show()
+
