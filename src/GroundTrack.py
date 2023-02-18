@@ -41,11 +41,11 @@ def ground_track(tt, rr, t_0, PMST_0, omega_planet, deg=True):
         print(err)
 
     # Init output vectors
-    alpha = np.zeros(len(tt))
-    delta = np.zeros(len(tt))
-    latitude = np.zeros(len(tt))
-    longitude = np.zeros(len(tt))
-    r_norm = np.zeros(len(tt))
+    alpha = np.empty(len(tt))
+    delta = np.empty(len(tt))
+    latitude = np.empty(len(tt))
+    longitude = np.empty(len(tt))
+    r_norm = np.empty(len(tt))
 
     # Initial Prime Meridian angle of the planet [rad]
     theta_0 = PMST_0 * np.pi / 12
@@ -114,7 +114,7 @@ def plot_ground_track(coords, args={}, ground_stations=None):
         'colors': ['b', 'r', 'g', 'y', 'm'],
         'show_coasline': COASTLINES_COORDINATES_FILE,
         'show_surface': EARTH_SURFACE_IMAGE,
-        'show_plot': True,
+        'show_plot': False,
         'save_plot': False,
         'filename': "groundtrack.png",
         'dpi': 300,
@@ -146,8 +146,8 @@ def plot_ground_track(coords, args={}, ground_stations=None):
             label = _args['labels'][n]
 
         # plot starting point and ground track
-        ax.plot(coords[n][0, 1], coords[n][0, 0], _args['colors'][n] + 'o')
-        ax.plot(coords[n][:, 1], coords[n][:, 0], _args['colors'][n] + '.', markersize=1.5, label=label)
+        ax.plot(coords[n][0, 1], coords[n][0, 0], _args['colors'][n] + '.', markersize=3, label=label)
+        ax.plot(coords[n][:, 1], coords[n][:, 0], _args['colors'][n] + '.', markersize=1.5)
 
     # plot ground station and their visibility area
     for city in ground_stations:

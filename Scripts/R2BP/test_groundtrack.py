@@ -8,16 +8,18 @@ import plotly.express as px
 
 from spiceypy import spiceypy as spice
 
+# from astropy import constants as const
+# from astropy import units as u
+# from poliastro.bodies import Earth, Moon, Sun
+# from poliastro.twobody import Orbit
+
 from src.GroundTrack import *
 from src.OrbitPropagator.R2BP import *
 from src.SunSynch import *
 from src.Utilities.KeplerianParameters import *
 from src.Utilities.TimeConversion import *
+from src.Utilities.spice_tools import *
 
-# from astropy import constants as const
-# from astropy import units as u
-# from poliastro.bodies import Earth, Moon, Sun
-# from poliastro.twobody import Orbit
 
 if __name__ == '__main__':
     # Constants
@@ -32,12 +34,12 @@ if __name__ == '__main__':
     omega_earth = 2 * np.pi / ST_earth_rot
 
     # Orbit parameters
-    altitude = 800.
+    altitude = 600.0
     a = R_earth + altitude
     # a = 26600
     eccentricity = 0.0
-    incl = inclination_sunsynch(a, eccentricity)
-    # incl = 15
+    # incl = inclination_sunsynch(a, eccentricity)
+    incl = 5
     Omega = 10.0
     omega = 200.0
     theta = 150.0
@@ -62,9 +64,10 @@ if __name__ == '__main__':
     print('Apocenter:               {0} km'.format(a * (1 + eccentricity)))
 
     # Reference time
-    kernel_dir = "D:/Documents/Francesco/Space_Engineering/spice_kernels/"
+    kernel_dir = "D:/Documents/Francesco/Space_Engineering/spice_kernels"
     meta_kernel = kernel_dir + 'meta_kernel.tm'
-    spice.furnsh(meta_kernel)
+    ## spice.furnsh(meta_kernel)
+    load_spice_kernel()
     date0 = "2025 jan 14 15:22:40"
     jd0 = spice.utc2et(date0) / 86400
     spice.kclear()
@@ -75,9 +78,9 @@ if __name__ == '__main__':
     # Orbit propagation
     X0 = np.hstack((rr0, vv0))
     t0 = 0
-    tf = 20 * T_orb
-    # tf = 86400 * 5
-    t_out = np.arange(t0, tf, 20)
+    # tf = 20 * T_orb
+    tf = 86400 * 5
+    t_out = np.arange(t0, tf, 30)
     perturbations = null_perturbation()
     perturbations["J2"] = True
     orbit = OrbitPropagatorR2BP(X0, t_out, earth, perts=perturbations)
@@ -113,7 +116,9 @@ if __name__ == '__main__':
     alpha, delta, lat, long, _ = ground_track(tt, rr_orb, t_0, GMST_0, omega_earth)
 
     ground_station_coord = [40.452728, -4.367587]  # Cerebros
-    ground_station_coord = [67.858428, 20.966880]  # Kiruna KIR-2
+    # ground_station_coord = [67.858428, 20.966880]  # Kiruna KIR-2
+    # Kourou station +5° 15' 05.18", -52° 48' 16.79"
+    ground_station_coord = [5+15/60+05.18/3600, -52+48/60+16.79/3600]
     h_gs = 385.8 / 1000
     visibility_aperture = 70
     visibility, rr_lh, visibility_window = ground_station_visibility(tt, rr_orb, ground_station_coord, R_earth + h_gs,
@@ -210,7 +215,8 @@ if __name__ == '__main__':
     piacenza = [45.042236, 9.679320, 'Piacenza', 'r']
     # figure1, ax1 = plot_ground_track(coords)
     plot_args = {
-        'show_surface': None
+        'show_surface': None,
+        'show_plot': True
     }
     plot_ground_track(coords, args=plot_args, ground_stations=[piacenza])
 
