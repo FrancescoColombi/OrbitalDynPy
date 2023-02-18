@@ -1,18 +1,27 @@
-import numpy as np
-from spiceypy import spiceypy as spice
-from typing import Callable, Iterator, Iterable, Optional, Tuple, Union, Sequence
+# Python libraries
+import os
+import spiceypy as spice
 
 
-def load_spice_kernel(kernel_dir: str, list_of_kernel: Union[str, Iterable[str]]):
+# set default base folder of spice kernel data
+default_base_folder = os.path.join(
+    os.path.dirname(os.path.realpath(__file__)),
+    os.path.join('..', '..', '..', 'spice_kernels')
+)
+# set default list of spice kernel data
+default_kernel_list = 'meta_kernel.tm'
+
+
+def load_spice_kernel(base_dir=default_base_folder, list_of_kernel=[default_kernel_list]):
     """
     This function loads the spice kernels which have been passed as input
 
-    :parameter kernel_dir: base folder path of kernels
+    :parameter base_dir: base folder path of kernels
     :parameter list_of_kernel: list of kernels from base folder
     """
     meta_kernel = []
     for kernel_name in list_of_kernel:
-        meta_kernel.append(kernel_dir + kernel_name)
+        meta_kernel.append(os.path.join(base_dir, kernel_name))
     spice.furnsh(meta_kernel)
     return
 
@@ -33,18 +42,29 @@ def utc2et(utc: str):
     return spice.str2et(utc)
 
 
-def get_ephem_state(target_id: str, epoch: Union[np.ndarray, float], observer_id: str, ref_frame='J2000',
-                    correction='NONE'):
+def get_ephem_state(target_id, epoch, observer_id, ref_frame='J2000', correction='NONE'):
     """
     This function return the ephemeris position and velocity of the target celestial object (spacecraft, planet,
     star, satellite, asteroid, ...) as seen in the given reference frame centered at the observer location
+
+    VARIABLE            I/O  DESCRIPTION
+    ------------------  ---  --------------------------------------------------
+    target_id            I   Target body name.
+    epoch                I   Observer epoch.
+    ref_frame            I   Reference frame of output state vector.
+    correction           I   Aberration correction flag.
+    observer_id          I   Observing body name.
+    ephem_state          O   State of target.
+    one_way_light_time   O   One way light time between observer and target.
     """
-    ephem_state, one_way_light_time = spice.spkezr(target_id, epoch, ref_frame, correction, observer_id)
+    if type(target_id) == str:
+        ephem_state, one_way_light_time = spice.spkezr(target_id, epoch, ref_frame, correction, observer_id)
+    else:
+        ephem_state, one_way_light_time = spice.spkez(target_id, epoch, ref_frame, correction, observer_id)
     return ephem_state, one_way_light_time
 
 
-def get_ephem_position(target_id: str, epoch: Union[np.ndarray, float], observer_id: str, ref_frame='J2000',
-                       correction='NONE'):
+def get_ephem_position(target_id, epoch, observer_id, ref_frame='J2000', correction='NONE'):
     """
     This function return the ephemeris position of the target celestial object (spacecraft, planet,
     star, satellite, asteroid, ...) as seen in the given reference frame centered at the observer location
