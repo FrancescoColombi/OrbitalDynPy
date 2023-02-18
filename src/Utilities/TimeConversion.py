@@ -115,10 +115,7 @@ def jd2GMST(JD):
     D0 = JD0 - 2451545.0    # Number of days since J2000
     T = D / 36525           # Number of centuries since J2000
 
-    GMST_unwrapped = 6.697374558 \
-                     + 0.06570982441908 * D0 \
-                     + 1.00273790935 * H \
-                     + 0.000026 * T ** 2
+    GMST_unwrapped = 6.697374558 + 0.06570982441908 * D0 + 1.00273790935 * H + 0.000026 * T ** 2
     GMST = GMST_unwrapped % 24
     return GMST
 
@@ -153,6 +150,7 @@ if __name__ == '__main__':
     day = 365.256363004 - 365
     # day = 365.242190402 - 365
     hms = fracday2hms(day)
+    print(day)
     print(hms)
     print(hms2fracday(hms))
 

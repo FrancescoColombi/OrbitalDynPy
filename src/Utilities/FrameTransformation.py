@@ -122,8 +122,8 @@ def eq2ecef(rr, tspan, t_0, PMST_0, omega_planet):
     given as input the initial orientation of the generic planet (PMST_0) at a given epoch (t_0)
     and assuming a constant rotational rate of the planet (omega_planet).
 
-    Return the transformed vectors (array rr_ecef(n, 3))
-    and the DCM (list of n C_eq2ecef(3, 3)) at each time of tspan (array (n))
+    Return the transformed vectors (array rr_pcpf(n, 3))
+    and the DCM (list of n C_eq2pcpf(3, 3)) at each time of tspan (array (n))
 
     :param rr:              Set of position vectors in the Equatorial frame
     :param tspan:           Array of the time corresponding to each position of the array rr
@@ -131,11 +131,11 @@ def eq2ecef(rr, tspan, t_0, PMST_0, omega_planet):
     :param PMST_0:          Sidereal Time (ST) hour angle of the Prime Meridian (PM) at reference epoch
     :param omega_planet:    Rotational rate of the planet
 
-    :return: rr_ecef, C_eq2ecef
+    :return: rr_pcpf, C_eq2pcpf
     """
     # init output
-    rr_ecef = np.zeros([len(tspan), 3])
-    dcm_eq2ecef = []
+    rr_pcpf = np.zeros([len(tspan), 3])
+    dcm_eq2pcpf = []
 
     # Initial Prime Meridian angle of the planet [rad]
     theta_0 = PMST_0 * np.pi / 12
@@ -150,10 +150,10 @@ def eq2ecef(rr, tspan, t_0, PMST_0, omega_planet):
             [-sin(theta), cos(theta), 0],
             [0, 0, 1]
         ])
-        dcm_eq2ecef[n] = A_equatorial2pcpf
-        rr_ecef[n, :] = np.dot(A_equatorial2pcpf, rr[n, :])
+        dcm_eq2pcpf[n] = A_equatorial2pcpf
+        rr_pcpf[n, :] = np.dot(A_equatorial2pcpf, rr[n, :])
 
-    return rr_ecef, dcm_eq2ecef
+    return rr_pcpf, dcm_eq2pcpf
 
 
 def eq2latlong(rr, tspan, t_0, PMST_0, omega_planet):
@@ -208,5 +208,7 @@ def lvlh_framebuilder(xx):
     y_lvlh = -hh / norm(hh)  # H-bar
     x_lvlh = np.cross(y_lvlh, z_lvlh)  # V-bar
 
-    dcm_lvlh = np.array([x_lvlh, y_lvlh, z_lvlh])
+    dcm_lvlh = np.array([x_lvlh,
+                         y_lvlh,
+                         z_lvlh])
     return dcm_lvlh

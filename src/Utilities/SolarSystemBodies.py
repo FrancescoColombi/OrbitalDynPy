@@ -29,20 +29,20 @@ RAD2DEG = 180 / pi
 DEG2RAD = pi / 180
 
 earth = {
-    "name": 'Earth',
-    "spice_name": 'EARTH BARYCENTER',
-    "SPICE_ID": 3,
-    "mu": solar_sys.Earth.k.to('km3/s2').value,   # km3/s2
-    "radius": solar_sys.Earth.R.to('km').value,   # km
-    "SOI": 926006.6608,                           # km
-    "sidereal_day": (23 * 60 + 56) * 60 + 4.09,   # sec
-    "sidereal_year": 365.256363004,               # days
-    "J2": solar_sys.Earth.J2.value,
-    "J3": solar_sys.Earth.J3.value,
-    "rho0": astrocon.rho0_earth.value,            # kg/m3
-    "H0": astrocon.H0_earth.to('km').value,       # km
-    "cmap": 'Blues',
-    "body_fixed_frame": 'IAU_EARTH',
+    'name': 'Earth',
+    'spice_name': 'EARTH BARYCENTER',
+    'SPICE_ID': 3,
+    'mu': solar_sys.Earth.k.to('km3/s2').value,   # km3/s2
+    'radius': solar_sys.Earth.R.to('km').value,   # km
+    'SOI': 926006.6608,                           # km
+    'sidereal_day': (23 * 60 + 56) * 60 + 4.09,   # sec
+    'sidereal_year': 365.256363004,               # days
+    'J2': solar_sys.Earth.J2.value,
+    'J3': solar_sys.Earth.J3.value,
+    'rho0': astrocon.rho0_earth.value,            # kg/m3
+    'H0': astrocon.H0_earth.to('km').value,       # km
+    'cmap': 'Blues',
+    'body_fixed_frame': 'IAU_EARTH',
 }
 
 venus = {
@@ -180,18 +180,18 @@ for body in bodies:
 if __name__ == '__main__':
     print("Universal Gravitational Constant    = {0} [km3/kg/s2]".format(G))
     print("Astronomical Unit                   = {0} [km]".format(AU))
-    print("Celestial Body: {0}".format(earth["name"]))
-    print("   spice_name       = {0}".format(earth["spice_name"]))
-    print("   SPICE_ID         = {0}".format(earth["SPICE_ID"]))
-    print("   body_fixed_frame = {0}".format(earth["body_fixed_frame"]))
-    print("   mu               = {0} [km3/s2]".format(earth["mu"]))
-    print("   mass             = {0} [kg]".format(earth["mass"]))
-    print("   radius           = {0} [km]".format(earth["radius"]))
-    print("   SOI              = {0} [km]".format(earth["SOI"]))
-    print("   sidereal_day     = {0} [sec]".format(earth["sidereal_day"]))
-    print("   sidereal_year    = {0} [sec]".format(earth["sidereal_year"]))
-    print("   J2               = {0}".format(earth["J2"]))
-    print("   J3               = {0}".format(earth["J3"]))
-    print("   rho0             = {0} [kg/m3]".format(earth["rho0"]))
-    print("   H0               = {0} [km]".format(earth["H0"]))
-    print("   cmpa             = {0}".format(earth["cmpa"]))
+    print("Celestial Body: {0}".format(earth['name']))
+    print("   spice_name       = {0}".format(earth['spice_name']))
+    print("   SPICE_ID         = {0}".format(earth['SPICE_ID']))
+    print("   body_fixed_frame = {0}".format(earth['body_fixed_frame']))
+    print("   mu               = {0} [km3/s2]".format(earth['mu']))
+    print("   mass             = {0} [kg]".format(earth['mass']))
+    print("   radius           = {0} [km]".format(earth['radius']))
+    print("   SOI              = {0} [km]".format(earth['SOI']))
+    print("   sidereal_day     = {0} [sec]".format(earth['sidereal_day']))
+    print("   sidereal_year    = {0} [sec]".format(earth['sidereal_year']))
+    print("   J2               = {0}".format(earth['J2']))
+    print("   J3               = {0}".format(earth['J3']))
+    print("   rho0             = {0} [kg/m3]".format(earth['rho0']))
+    print("   H0               = {0} [km]".format(earth['H0']))
+    print("   cmpa             = {0}".format(earth['cmap']))
