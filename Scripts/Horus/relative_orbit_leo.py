@@ -27,7 +27,7 @@ omega_earth = 2 * np.pi / ST_earth_rot
 
 """REFERENCE ORBIT OF MOTHER MISSION"""
 # Orbit parameters
-altitude = 600.
+altitude = 550.
 a = R_earth + altitude
 # a = 26600
 eccentricity = 0.0
@@ -91,8 +91,8 @@ X0_cubesat = np.hstack((rr0_cubesat, vv0_cubesat))
 orbit_cubesat = OrbitPropagatorR2BP(X0_cubesat, t_out, earth, perts=perturbations)
 rr_cubesat = orbit_cubesat.rr_out
 vv_cubesat = orbit_cubesat.vv_out
-#orbit_cubesat.plot_3D(show_plot=False)
-#orbit_cubesat.plot_kp(show_plot=True)
+#orbit_deploy.plot_3D(show_plot=False)
+#orbit_deploy.plot_kp(show_plot=True)
 
 """RELATIVE MOTION IN EQUATORIAL FRAME"""
 rr_delta = rr_cubesat - rr_orb
@@ -172,8 +172,8 @@ X0_cubesat = np.hstack((rr0_cubesat, vv0_cubesat))
 orbit_cubesat = OrbitPropagatorR2BP(X0_cubesat, t_out, earth, perts=perturbations)
 rr_cubesat = orbit_cubesat.rr_out
 vv_cubesat = orbit_cubesat.vv_out
-#orbit_cubesat.plot_3D(show_plot=False)
-#orbit_cubesat.plot_kp(show_plot=True)
+#orbit_deploy.plot_3D(show_plot=False)
+#orbit_deploy.plot_kp(show_plot=True)
 
 """RELATIVE MOTION IN EQUATORIAL FRAME"""
 rr_delta = rr_cubesat - rr_orb

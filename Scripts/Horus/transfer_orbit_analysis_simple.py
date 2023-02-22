@@ -25,7 +25,7 @@ mu_earth = earth["mu"]
 
 """REFERENCE ORBIT OF MOTHER MISSION"""
 # Orbit parameters
-altitude = 600.0
+altitude = 550.0
 a = R_earth + altitude
 eccentricity = 0.0
 incl = 5.2
@@ -60,7 +60,7 @@ plt.show()
 
 """DELTA INITIAL ORBIT"""
 e_cubesat = 0.000005
-kp0_cubesat = [a, e_cubesat, incl, Omega, omega, theta+179.999]
+kp0_cubesat = [a, e_cubesat, incl, Omega, omega, theta+179.9]
 rr0_cubesat, vv0_cubesat = kp2rv(kp0_cubesat, mu_earth)
 print('Keplerian parameter:     {0}'.format(kp0_cubesat))
 print('Initial position:        {0} km'.format(rr0_cubesat))
@@ -72,12 +72,12 @@ print('Apocenter:               {0} km'.format(a * (1 + e_cubesat)))
 
 
 # X0_cubesat = np.hstack((rr0_cubesat, vv0_cubesat))
-# orbit_cubesat = OrbitPropagatorR2BP(X0_cubesat, t_out, earth, perts=perturbations)
-# rr_cubesat = orbit_cubesat.rr_out
-# vv_cubesat = orbit_cubesat.vv_out
+# orbit_deploy = OrbitPropagatorR2BP(X0_cubesat, t_out, earth, perts=perturbations)
+# rr_cubesat = orbit_deploy.rr_out
+# vv_cubesat = orbit_deploy.vv_out
 
 ToF = T_orb/2
-a_to, p_to, e_to, error_lambert, vv_to_dep, vv_to_arr, tpar, theta = lambertMR(rr0, rr0_cubesat, ToF, mu_earth, Ncase=1, Nrev=0, optionsLMR=0)
+a_to, p_to, e_to, error_lambert, vv_to_dep, vv_to_arr, tpar, theta = lambertMR(rr0, rr0_cubesat, ToF, mu_earth, Ncase=0, Nrev=0, optionsLMR=0)
 print("-----------------------------------")
 print("Lambert Solver outputs")
 print("Result {0}".format(error_lambert))
