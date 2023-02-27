@@ -156,7 +156,10 @@ plt.show()
 
 
 """DELTA INITIAL ORBIT"""
-e_cubesat = 0.000005
+delta_peri = 100/1000  # km
+delta_apo = 100/1000  # km
+a_cubesat = a
+e_cubesat = 1 - (a-delta_peri)/a
 kp0_cubesat = [a, e_cubesat, incl, Omega, omega, theta]
 rr0_cubesat, vv0_cubesat = kp2rv(kp0_cubesat, mu_earth)
 print('Keplerian parameter:     {0}'.format(kp0_cubesat))
@@ -187,7 +190,7 @@ ax_rel_motion_abs.set_aspect('equal')
 ax_rel_motion_abs.set_xlabel("x - equatorial frame [km]")
 ax_rel_motion_abs.set_ylabel("y - equatorial frame [km]")
 ax_rel_motion_abs.set_zlabel("z - equatorial frame [km]")
-ax_rel_motion_abs.set_title("Relative motion in Equatorial Frame")
+ax_rel_motion_abs.set_title("Relative motion in Equatorial Frame - Target centered")
 plt.legend()
 
 
@@ -212,7 +215,7 @@ ax_rel_motion_lvlh.set_aspect('equal')
 ax_rel_motion_lvlh.set_xlabel("V - bar [km]")
 ax_rel_motion_lvlh.set_ylabel("H - bar [km]")
 ax_rel_motion_lvlh.set_zlabel("R - bar [km]")
-ax_rel_motion_lvlh.set_title("Relative motion in LVLH Frame")
+ax_rel_motion_lvlh.set_title("Relative motion in LVLH Frame - Target centered")
 plt.legend()
 
 fig_rel_motion_vrbar = plt.figure()
@@ -224,7 +227,7 @@ ax_rel_motion_vrbar.plot(0, 0, '.', label='Target')
 ax_rel_motion_vrbar.set_aspect('equal')
 ax_rel_motion_vrbar.set_xlabel("V - bar [km]")
 ax_rel_motion_vrbar.set_ylabel("R - bar [km]")
-ax_rel_motion_vrbar.set_title("Relative motion in LVLH Frame")
+ax_rel_motion_vrbar.set_title("Relative motion in LVLH Frame - Target centered")
 plt.legend()
 
 fig_rel_dist = plt.figure()

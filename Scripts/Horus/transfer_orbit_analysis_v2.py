@@ -255,12 +255,13 @@ fig_to_cost = plt.figure(figsize=(6, 5))
 left, bottom, width, height = 0.1, 0.1, 0.8, 0.8
 ax = fig_to_cost.add_axes([left, bottom, width, height])
 # cp = ax.contourf(X, Y, delta_v_out, levels=np.arange(0,100,5))
-cp = ax.contourf(X, Y, delta_v_out, levels=np.arange(0,10,0.25))
+cp = ax.contour(X, Y, delta_v_out, levels=np.arange(0, 10, 0.25))
+# ax.clabel(cp, inline=True, fontsize=10)
 ax.set_title('Delta V Transfer Orbit')
 ax.set_ylabel('ToF [sec]')
 ax.set_xlabel('Orientation [deg]')
-plt.colorbar(cp)
-
+cbar = plt.colorbar(cp)
+cbar.ax.set_ylabel("$\Delta$V [m/s]")
 
 ## display solution
 
@@ -301,7 +302,7 @@ t_t0_to = np.arange(0, tof, dt)
 orbit_to = OrbitPropagatorR2BP(X0_to, t_t0_to, earth, perts=perturbations)
 rr_to = orbit_to.rr_out
 vv_to = orbit_to.vv_out
-orbit_to.plot_3D()
+orbit_to.plot_3D(title="Transfer Orbit")
 plt.show()
 
 rr0 = rr_orb[-1, :]
@@ -325,7 +326,7 @@ ax_rel_motion_abs.set_aspect('equal')
 ax_rel_motion_abs.set_xlabel("x - equatorial frame [km]")
 ax_rel_motion_abs.set_ylabel("y - equatorial frame [km]")
 ax_rel_motion_abs.set_zlabel("z - equatorial frame [km]")
-ax_rel_motion_abs.set_title("Relative motion in Equatorial Frame - Target centric")
+ax_rel_motion_abs.set_title("Relative motion in Equatorial Frame - Target centered")
 plt.legend()
 
 
@@ -350,7 +351,7 @@ ax_rel_motion_lvlh.set_aspect('equal')
 ax_rel_motion_lvlh.set_xlabel("V - bar [km]")
 ax_rel_motion_lvlh.set_ylabel("H - bar [km]")
 ax_rel_motion_lvlh.set_zlabel("R - bar [km]")
-ax_rel_motion_lvlh.set_title("Relative motion in LVLH Frame - Target centric")
+ax_rel_motion_lvlh.set_title("Relative motion in LVLH Frame - Target centered")
 plt.legend()
 
 fig_rel_motion_vrbar = plt.figure()
@@ -362,7 +363,7 @@ ax_rel_motion_vrbar.plot(0, 0, '.', label='Target')
 ax_rel_motion_vrbar.set_aspect('equal')
 ax_rel_motion_vrbar.set_xlabel("V - bar [km]")
 ax_rel_motion_vrbar.set_ylabel("R - bar [km]")
-ax_rel_motion_vrbar.set_title("Relative motion in LVLH Frame - Target centric")
+ax_rel_motion_vrbar.set_title("Relative motion in LVLH Frame - Target centered")
 plt.legend()
 
 fig_rel_dist = plt.figure()
