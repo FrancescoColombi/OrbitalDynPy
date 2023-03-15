@@ -71,3 +71,17 @@ def get_ephem_position(target_id, epoch, observer_id, ref_frame='J2000', correct
     """
     ephem_pos, one_way_light_time = spice.spkpos(target_id, epoch, ref_frame, correction, observer_id)
     return ephem_pos, one_way_light_time
+
+
+if __name__ == '__main__':
+    load_spice_kernel()
+
+    date = ["1988 June 13, 13:29:48", "1988 June 14, 13:29:48"]
+    date_et = utc2et(date)
+    # print(date_et)
+
+    rr_sun, lt = get_ephem_position("SUN", date_et, "EARTH", ref_frame='IAU_EARTH', correction='NONE')
+    #print(rr_sun)
+    print(rr_sun[0])
+    print(rr_sun[1])
+    close_spice()
